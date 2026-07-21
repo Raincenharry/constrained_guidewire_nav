@@ -27,9 +27,19 @@ print("  clamp steps         %.1f per episode" % last.clamp_steps.mean())
 print("  end reasons         %s" % last.end_reason.value_counts().to_dict())
 print()
 
+if "env_instance" in df:
+    main_inst = df.env_instance.value_counts().idxmax()
+    train = df[df.env_instance == main_inst].sort_values("episode").reset_index(drop=True)
+    print("env instances: %s (using %s as training)"
+          % (df.env_instance.value_counts().to_dict(), main_inst))
+else:
+    train = df
+
+print()
+print("training episodes: %d" % len(train))
 print("success rate by block of %d" % window)
-for i in range(0, len(df), window):
-    block = df.iloc[i:i + window]
+for i in range(0, len(train), window):
+    block = train.iloc[i:i + window]
     if len(block) < window // 2:
         continue
     print("  ep %5d to %5d   success %.3f   force_mean %.3f   ep_return %+.3f"

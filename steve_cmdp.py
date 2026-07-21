@@ -53,6 +53,7 @@ class MaxAlongDeviceHinge(CostFn):
     def __init__(self, threshold: float = 0.85, ceiling: float = 5.0):
         self.threshold = float(threshold)
         self.ceiling = float(ceiling)
+        
 
     def __call__(self, simulation) -> float:
         f = min(max_along_device(simulation), self.ceiling)
@@ -172,6 +173,12 @@ OBS_KEY_ORDER = ("position", "target", "rotation")
 # Unset means no logging, so probes and smoke tests stay clean.
 EPISODE_LOG = os.environ.get("STEVE_EPISODE_LOG", "")
 
+# OmniSafe builds separate train and eval environments in one process, both
+# writing to the same CSV. Tag each instance so rows can be separated.
+# Module level so the count is shared across every SteveCMDP created.
+_ENV_INSTANCE_COUNTER = [0]
+
+
 def flatten_obs(obs_dict: dict) -> np.ndarray:
     """Concatenate obs dict values in fixed key order to a flat float32 vector."""
     parts = []
@@ -254,6 +261,11 @@ class SteveCMDP(CMDP):
         self._insertion_backstop = insertion_limit(self._env, HARD_INSERTION_FRACTION)
         print("insertion clamp: %.1f mm, backstop: %.1f mm"
               % (self._insertion_limit, self._insertion_backstop))
+
+        # Which env instance this is: 1 is normally the training env,
+        # 2 the evaluation env OmniSafe builds alongside it.
+        _ENV_INSTANCE_COUNTER[0] += 1
+        self._env_instance = _ENV_INSTANCE_COUNTER[0]
 
         # Per episode accumulators, zeroed in reset
         self._episode_nr = 0
@@ -390,6 +402,7 @@ class SteveCMDP(CMDP):
             "arch_type": str(self._arch_type),
             "arch_seed": self._arch_seed,
             "train_pool": int(self._train),
+            "env_instance": self._env_instance,
         }
 
         write_header = not os.path.exists(EPISODE_LOG)
