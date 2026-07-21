@@ -58,6 +58,26 @@ class MaxAlongDeviceHinge(CostFn):
 
 
 # ============================================================
+# Insertion limit
+# ============================================================
+
+# Fraction of the shortest device length at which the episode is truncated.
+# The InterventionalRadiologyController segfaults once the inserted length
+# approaches the device length, so the episode must end before that point.
+MAX_INSERTION_FRACTION = 0.85
+
+
+def insertion_limit(env) -> float:
+    devices = getattr(env.intervention, "devices", None)
+    if devices:
+        lengths = [float(d.length) for d in devices]
+        return min(lengths) * MAX_INSERTION_FRACTION
+    # Fallback if the attribute name differs on this stEVE version
+    return 450.0 * MAX_INSERTION_FRACTION
+
+
+
+# ============================================================
 # Env builder
 # ============================================================
 
@@ -87,7 +107,7 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
         vessel_tree=vessel_tree, devices=[device], simulation=simulation,
         fluoroscopy=fluoroscopy, target=target,
     )
-    start = eve.start.MaxDeviceLength(intervention=intervention, max_length=500)
+    start = eve.start.MaxDeviceLength(intervention=intervention, max_length=380)
     pathfinder = eve.pathfinder.BruteForceBFS(intervention=intervention)
 
     position = eve.observation.Tracking2D(intervention=intervention, n_points=5)
@@ -106,11 +126,15 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
     reward = eve.reward.Combination([target_reward, path_delta])
 
     target_reached = eve.terminal.TargetReached(intervention=intervention)
-    max_steps = eve.truncation.MaxSteps(600)
+    truncation = eve.truncation.Combination([
+        eve.truncation.MaxSteps(600),
+        eve.truncation.SimError(intervention=intervention),
+        eve.truncation.VesselEnd(intervention=intervention),
+    ])
 
     env = eve.Env(
         intervention=intervention, observation=state, reward=reward,
-        terminal=target_reached, truncation=max_steps,
+        terminal=target_reached, truncation=truncation,
         start=start, pathfinder=pathfinder,
     )
     return env
@@ -183,6 +207,10 @@ class SteveCMDP(CMDP):
         # Fail fast if the solver does not expose constraint forces
         assert_force_available(self._env.intervention.simulation)
 
+        # Truncate before the controller runs off the end of the device
+        self._insertion_limit = insertion_limit(self._env)
+        print("insertion limit: %.1f mm" % self._insertion_limit)
+
         # Declare flat observation space
         flat_dim = flat_obs_size(self._env)
         self._observation_space = spaces.Box(
@@ -223,7 +251,7 @@ class SteveCMDP(CMDP):
     ) -> tuple[torch.Tensor, dict]:
         if seed is not None:
             self._seed = seed
-        obs_dict, info = self._env.reset()
+        obs_dict, info = self._env.reset(seed=self._seed)
         self._last_obs_dict = obs_dict
         flat = flatten_obs(obs_dict)
         return torch.as_tensor(flat, dtype=torch.float32, device=self._device), info
@@ -248,6 +276,26 @@ class SteveCMDP(CMDP):
         info["force_tip"] = tip_force(sim)
         info["force_solver_max"] = force_N(sim)
         info["cost_fn"] = self._cost_fn.name
+
+        # Guard: truncate before the inserted length reaches the device length
+        inserted = np.asarray(
+            self._env.intervention.device_lengths_inserted, dtype=np.float64
+        )
+        over_insertion = bool(np.any(inserted > self._insertion_limit))
+        if over_insertion:
+            truncated = True
+        info["inserted_max"] = float(inserted.max())
+        info["over_insertion"] = over_insertion
+
+        # Why the episode ended, so early termination can be diagnosed
+        if terminated:
+            info["end_reason"] = "target_reached"
+        elif over_insertion:
+            info["end_reason"] = "insertion_limit"
+        elif truncated:
+            info["end_reason"] = "steve_truncation"
+        else:
+            info["end_reason"] = None
 
         flat = flatten_obs(obs_dict)
         obs_t = torch.as_tensor(flat, dtype=torch.float32, device=self._device)
