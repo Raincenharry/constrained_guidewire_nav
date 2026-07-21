@@ -9,6 +9,21 @@ to set the training budget for all later conditions.
 import os
 import sys
 import argparse
+
+# Must run BEFORE steve_cmdp is imported, because EPISODE_LOG is read at
+# module import time. Setting it later has no effect and the log stays empty.
+def _preset_episode_log() -> str:
+    ap = argparse.ArgumentParser(add_help=False)
+    ap.add_argument("--tag", default="run")
+    ap.add_argument("--seed", type=int, default=0)
+    known, _ = ap.parse_known_args()
+    path = os.path.abspath("./runs_%s/episodes_seed%d.csv" % (known.tag, known.seed))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    os.environ["STEVE_EPISODE_LOG"] = path
+    return path
+
+EPISODE_LOG_PATH = _preset_episode_log()
+
 import torch
 import omnisafe
 
@@ -38,7 +53,15 @@ def main():
     p.add_argument("--steps", type=int, default=300000)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--tag", type=str, default="r1_baseline")
+    p.add_argument("--steps_per_epoch", type=int, default=6000,
+                   help="must divide --steps exactly, OmniSafe asserts this")
     args = p.parse_args()
+
+    if args.steps % args.steps_per_epoch != 0:
+        raise SystemExit(
+            "steps (%d) must be divisible by steps_per_epoch (%d)"
+            % (args.steps, args.steps_per_epoch)
+        )
 
     _ACTIVE_COST_FN = ZeroCost()
 
@@ -53,14 +76,22 @@ def main():
         },
 
         "algo_cfgs": {
-            "steps_per_epoch": 6000,
+            "steps_per_epoch": args.steps_per_epoch,
             "update_iters": 1,
             "batch_size": 256,
             "gamma": 0.99,
             "polyak": 0.005,
             "start_learning_steps": 10000,
             "use_cost": False,
-            "auto_alpha": True,
+            # Entropy coefficient set by arithmetic rather than left to
+            # auto_alpha, which initialises at 1.0 and burns roughly ten
+            # epochs descending. Task return is order 1.0 per episode; at
+            # gamma 0.99 the entropy term is about alpha * 175, so alpha
+            # 0.0005 puts entropy near 10 percent of the task scale.
+            # The 21 July auto_alpha run converged to 0.000147, which is
+            # independent confirmation of this order of magnitude.
+            "auto_alpha": False,
+            "alpha": 0.0005,
         },
         "logger_cfgs": {
             "use_wandb": False,
@@ -76,12 +107,14 @@ def main():
     print("steps: %d   seed: %d   tag: %s" % (args.steps, args.seed, args.tag))
     print("device: %s" % custom_cfgs["train_cfgs"]["device"])
     print("=" * 60)
+    print("episode log: %s" % EPISODE_LOG_PATH)
     sys.stdout.flush()
 
     agent = omnisafe.Agent(
         algo="SAC",
         env_id="SteveNav-v0",
         custom_cfgs=custom_cfgs,
+        
     )
     agent.learn()
     print("done: %s" % args.tag)
