@@ -1,0 +1,9 @@
+sofa_src/
+sofa_build/
+sofa_install/
+BeamAdapter_src/
+runs_*/
+omnisafe_runs/
+*.pyc
+__pycache__/
+*.log
