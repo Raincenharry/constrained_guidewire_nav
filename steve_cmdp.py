@@ -121,13 +121,18 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
         "rotation": rotation,
     })
 
+    # R1 from Robertshaw et al. 2025, Eq. 1:
+    #   R1 = -0.005 - 0.001 * delta_pathlength + 1.0 on target reached
+    # PathLengthDelta negates the delta internally, so a positive factor
+    # pays for progress. Step emits its factor on every step.
     target_reward = eve.reward.TargetReached(intervention=intervention, factor=1.0)
-    path_delta = eve.reward.PathLengthDelta(pathfinder=pathfinder, factor=0.01)
-    reward = eve.reward.Combination([target_reward, path_delta])
+    path_delta = eve.reward.PathLengthDelta(pathfinder=pathfinder, factor=0.001)
+    step_penalty = eve.reward.Step(factor=-0.005)
+    reward = eve.reward.Combination([target_reward, path_delta, step_penalty])
 
     target_reached = eve.terminal.TargetReached(intervention=intervention)
     truncation = eve.truncation.Combination([
-        eve.truncation.MaxSteps(600),
+        eve.truncation.MaxSteps(200),
         eve.truncation.SimError(intervention=intervention),
         eve.truncation.VesselEnd(intervention=intervention),
     ])
