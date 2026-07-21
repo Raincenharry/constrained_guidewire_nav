@@ -22,7 +22,10 @@ import omnisafe
 from omnisafe.envs.core import CMDP, env_register
 from omnisafe.typing import DEVICE_CPU, OmnisafeSpace
 
+import random
+
 import eve
+from eve.intervention.vesseltree.aorticarch import ArchType
 from force_read import assert_force_available, max_along_device, tip_force, force_N
 
 
@@ -70,6 +73,13 @@ class MaxAlongDeviceHinge(CostFn):
 MAX_INSERTION_FRACTION = 0.85   # forward translation is clamped here
 HARD_INSERTION_FRACTION = 0.95  # backstop truncation, should never fire
 MAX_EPISODE_STEPS = 200
+# Anatomy variety. Arch morphology is the generalisation axis: the agent
+# trains on four arch types and is evaluated on two it has never seen.
+# This is what makes the R4 generalisation collapse reproducible.
+# Note: AorticArch treats seed 0 as falsy and replaces it, so seeds start at 1.
+TRAIN_ARCH_TYPES = [ArchType.I, ArchType.II, ArchType.IV, ArchType.V]
+TEST_ARCH_TYPES = [ArchType.VI, ArchType.VII]
+ARCH_SEED_RANGE = (1, 10**6)
 
 def insertion_limit(env, fraction: float = MAX_INSERTION_FRACTION) -> float:
     devices = getattr(env.intervention, "devices", None)
@@ -85,9 +95,11 @@ def insertion_limit(env, fraction: float = MAX_INSERTION_FRACTION) -> float:
 # Env builder
 # ============================================================
 
-def build_steve_env(seed: Optional[int] = None) -> eve.Env:
+def build_steve_env(
+    seed: Optional[int] = None, arch_type: ArchType = ArchType.I,
+) -> eve.Env:
     """
-    Build the current arch / JShaped stEVE env.
+    Build the arch / JShaped stEVE env.
     Kept as a function so the adapter can rebuild on reset if needed
     and so training scripts can share the exact construction.
     """
@@ -95,8 +107,9 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
         seed = 30
 
     vessel_tree = eve.intervention.vesseltree.AorticArch(
-        seed=seed, scaling_xyzd=[1.0, 1.0, 1.0, 0.75]
+        seed=seed, arch_type=arch_type, scaling_xyzd=[1.0, 1.0, 1.0, 0.75]
     )
+
     device = eve.intervention.device.JShaped(velocity_limit=(40, 3.14))
     simulation = eve.intervention.simulation.SofaBeamAdapter(friction=0.001)
     fluoroscopy = eve.intervention.fluoroscopy.TrackingOnly(
@@ -199,6 +212,8 @@ class SteveCMDP(CMDP):
         device: torch.device = DEVICE_CPU,
         cost_fn: Optional[CostFn] = None,
         seed: int = 30,
+        train: bool = True,
+        vary_anatomy: bool = True,
         **kwargs: Any,
     ) -> None:
         super().__init__(env_id)
@@ -209,9 +224,24 @@ class SteveCMDP(CMDP):
         self._cost_fn = cost_fn if cost_fn is not None else ZeroCost()
         self._seed = seed
         self._num_envs = 1
+        self._train = bool(train)
+        self._vary_anatomy = bool(vary_anatomy)
+        self._arch_pool = TRAIN_ARCH_TYPES if self._train else TEST_ARCH_TYPES
+
+        # One RNG drives anatomy choice, seeded once so the whole episode
+        # sequence is reproducible from the run seed alone.
+        self._anatomy_rng = random.Random(seed)
+        self._arch_type = self._arch_pool[0]
+        self._arch_seed = seed if seed else 1
 
         # Build the underlying env
-        self._env = build_steve_env(seed=seed)
+        self._env = build_steve_env(seed=self._arch_seed, arch_type=self._arch_type)
+
+        # Seed the target sampler's RNG once. It then advances naturally
+        # across episodes, giving a deterministic sequence of different
+        # targets. Never pass a seed to env.reset after this, or the RNG
+        # is rebuilt and every episode gets the same target.
+        self._env.intervention.target._rng = random.Random(seed)
 
         # Do one reset so the SOFA scene exists and the LCP node is populated
         self._last_obs_dict, _ = self._env.reset()
@@ -274,7 +304,12 @@ class SteveCMDP(CMDP):
     ) -> tuple[torch.Tensor, dict]:
         if seed is not None:
             self._seed = seed
-        obs_dict, info = self._env.reset(seed=self._seed)
+            self._anatomy_rng = random.Random(seed)
+            self._env.intervention.target._rng = random.Random(seed)
+
+        self._set_anatomy()
+        # No seed passed: the target RNG must advance rather than be rebuilt
+        obs_dict, info = self._env.reset()
         self._last_obs_dict = obs_dict
 
         self._step_nr = 0
@@ -290,6 +325,29 @@ class SteveCMDP(CMDP):
         flat = flatten_obs(obs_dict)
         return torch.as_tensor(flat, dtype=torch.float32, device=self._device), info
     
+    def _set_anatomy(self) -> None:
+        """Pick a new arch morphology and force regeneration.
+
+        AorticArch.reset only regenerates when branches is None, so nulling
+        it is what triggers a new geometry. The SOFA scene rebuild that
+        follows is automatic, driven by the changed mesh path and bounds,
+        and costs about 1.5 s.
+        """
+        if not self._vary_anatomy:
+            return
+        vt = self._env.intervention.vessel_tree
+        self._arch_type = self._anatomy_rng.choice(self._arch_pool)
+        self._arch_seed = self._anatomy_rng.randint(*ARCH_SEED_RANGE)
+        vt.arch_type = self._arch_type
+        vt.seed = self._arch_seed
+        vt.branches = None
+
+        # Regenerate geometry now, before env.reset runs, so the episode
+        # coordinate space can be corrected before the observation wrappers
+        # read it. AorticArch.reset is a no op once branches exist, so the
+        # call inside env.reset does nothing further.
+        vt.reset(self._episode_nr)
+        vt.coordinate_space_episode = vt.coordinate_space
 
     def _clamp_insertion(self, a: np.ndarray) -> tuple[np.ndarray, bool]:
         """Zero forward translation on any device already at its insertion
@@ -329,7 +387,11 @@ class SteveCMDP(CMDP):
             "path_length_at_reset": self._path_length_at_reset,
             "cost_fn": self._cost_fn.name,
             "seed": self._seed,
+            "arch_type": str(self._arch_type),
+            "arch_seed": self._arch_seed,
+            "train_pool": int(self._train),
         }
+
         write_header = not os.path.exists(EPISODE_LOG)
         try:
             with open(EPISODE_LOG, "a", newline="") as fh:
@@ -397,7 +459,7 @@ class SteveCMDP(CMDP):
 
         if terminated or truncated:
             self._flush_episode(info["end_reason"])
-            
+
         flat = flatten_obs(obs_dict)
         obs_t = torch.as_tensor(flat, dtype=torch.float32, device=self._device)
         reward_t = torch.tensor(float(reward), dtype=torch.float32, device=self._device)
