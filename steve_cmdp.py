@@ -9,6 +9,9 @@ ZeroCost to validate the plumbing without physics involved.
 """
 
 from __future__ import annotations
+import csv
+import os
+import time
 from typing import Any, Callable, ClassVar, Optional
 
 import numpy as np
@@ -64,16 +67,17 @@ class MaxAlongDeviceHinge(CostFn):
 # Fraction of the shortest device length at which the episode is truncated.
 # The InterventionalRadiologyController segfaults once the inserted length
 # approaches the device length, so the episode must end before that point.
-MAX_INSERTION_FRACTION = 0.85
+MAX_INSERTION_FRACTION = 0.85   # forward translation is clamped here
+HARD_INSERTION_FRACTION = 0.95  # backstop truncation, should never fire
+MAX_EPISODE_STEPS = 200
 
-
-def insertion_limit(env) -> float:
+def insertion_limit(env, fraction: float = MAX_INSERTION_FRACTION) -> float:
     devices = getattr(env.intervention, "devices", None)
     if devices:
         lengths = [float(d.length) for d in devices]
-        return min(lengths) * MAX_INSERTION_FRACTION
+        return min(lengths) * fraction
     # Fallback if the attribute name differs on this stEVE version
-    return 450.0 * MAX_INSERTION_FRACTION
+    return 450.0 * fraction
 
 
 
@@ -93,7 +97,7 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
     vessel_tree = eve.intervention.vesseltree.AorticArch(
         seed=seed, scaling_xyzd=[1.0, 1.0, 1.0, 0.75]
     )
-    device = eve.intervention.device.JShaped()
+    device = eve.intervention.device.JShaped(velocity_limit=(40, 3.14))
     simulation = eve.intervention.simulation.SofaBeamAdapter(friction=0.001)
     fluoroscopy = eve.intervention.fluoroscopy.TrackingOnly(
         simulation=simulation, vessel_tree=vessel_tree,
@@ -132,7 +136,7 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
 
     target_reached = eve.terminal.TargetReached(intervention=intervention)
     truncation = eve.truncation.Combination([
-        eve.truncation.MaxSteps(200),
+        eve.truncation.MaxSteps(MAX_EPISODE_STEPS),
         eve.truncation.SimError(intervention=intervention),
         eve.truncation.VesselEnd(intervention=intervention),
     ])
@@ -151,6 +155,9 @@ def build_steve_env(seed: Optional[int] = None) -> eve.Env:
 
 OBS_KEY_ORDER = ("position", "target", "rotation")
 
+# Set STEVE_EPISODE_LOG to a csv path to record one row per episode.
+# Unset means no logging, so probes and smoke tests stay clean.
+EPISODE_LOG = os.environ.get("STEVE_EPISODE_LOG", "")
 
 def flatten_obs(obs_dict: dict) -> np.ndarray:
     """Concatenate obs dict values in fixed key order to a flat float32 vector."""
@@ -212,9 +219,20 @@ class SteveCMDP(CMDP):
         # Fail fast if the solver does not expose constraint forces
         assert_force_available(self._env.intervention.simulation)
 
-        # Truncate before the controller runs off the end of the device
-        self._insertion_limit = insertion_limit(self._env)
-        print("insertion limit: %.1f mm" % self._insertion_limit)
+        # Forward translation is clamped here, backstop truncates above it
+        self._insertion_limit = insertion_limit(self._env, MAX_INSERTION_FRACTION)
+        self._insertion_backstop = insertion_limit(self._env, HARD_INSERTION_FRACTION)
+        print("insertion clamp: %.1f mm, backstop: %.1f mm"
+              % (self._insertion_limit, self._insertion_backstop))
+
+        # Per episode accumulators, zeroed in reset
+        self._episode_nr = 0
+        self._step_nr = 0
+        self._ep_return = 0.0
+        self._ep_cost = 0.0
+        self._force_trace = []
+        self._clamp_steps = 0
+        self._path_length_at_reset = 0.0
 
         # Declare flat observation space
         flat_dim = flat_obs_size(self._env)
@@ -247,7 +265,7 @@ class SteveCMDP(CMDP):
 
     @property
     def max_episode_steps(self) -> int:
-        return 600
+        return MAX_EPISODE_STEPS
 
     # ----- OmniSafe required methods -----
 
@@ -258,50 +276,128 @@ class SteveCMDP(CMDP):
             self._seed = seed
         obs_dict, info = self._env.reset(seed=self._seed)
         self._last_obs_dict = obs_dict
+
+        self._step_nr = 0
+        self._ep_return = 0.0
+        self._ep_cost = 0.0
+        self._force_trace = []
+        self._clamp_steps = 0
+        try:
+            self._path_length_at_reset = float(self._env.pathfinder.path_length)
+        except Exception:
+            self._path_length_at_reset = 0.0
+
         flat = flatten_obs(obs_dict)
         return torch.as_tensor(flat, dtype=torch.float32, device=self._device), info
+    
+
+    def _clamp_insertion(self, a: np.ndarray) -> tuple[np.ndarray, bool]:
+        """Zero forward translation on any device already at its insertion
+        limit. Retraction stays allowed, so the agent can always recover.
+        This is an environment boundary, not a reward change, so R1 stays
+        exactly as the paper defines it."""
+        inserted = np.asarray(
+            self._env.intervention.device_lengths_inserted, dtype=np.float64
+        )
+        blocked = (inserted >= self._insertion_limit) & (a[:, 0] > 0.0)
+        if not np.any(blocked):
+            return a, False
+        a = a.copy()
+        a[blocked, 0] = 0.0
+        return a, True
+
+    def _flush_episode(self, end_reason: str) -> None:
+        if not EPISODE_LOG:
+            return
+        trace = np.asarray(self._force_trace, dtype=np.float64)
+        row = {
+            "wall_time": time.time(),
+            "episode": self._episode_nr,
+            "steps": self._step_nr,
+            "end_reason": end_reason,
+            "success": int(end_reason == "target_reached"),
+            "ep_return": self._ep_return,
+            "ep_cost": self._ep_cost,
+            "force_mean": float(trace.mean()) if trace.size else 0.0,
+            "force_max": float(trace.max()) if trace.size else 0.0,
+            "force_p95": float(np.percentile(trace, 95)) if trace.size else 0.0,
+            "steps_over_threshold": int((trace > 0.85).sum()) if trace.size else 0,
+            "clamp_steps": self._clamp_steps,
+            "inserted_final": float(
+                np.asarray(self._env.intervention.device_lengths_inserted).max()
+            ),
+            "path_length_at_reset": self._path_length_at_reset,
+            "cost_fn": self._cost_fn.name,
+            "seed": self._seed,
+        }
+        write_header = not os.path.exists(EPISODE_LOG)
+        try:
+            with open(EPISODE_LOG, "a", newline="") as fh:
+                w = csv.DictWriter(fh, fieldnames=list(row))
+                if write_header:
+                    w.writeheader()
+                w.writerow(row)
+        except Exception as exc:
+            print("episode log write failed: %s" % exc)
+        self._episode_nr += 1
 
     def step(
         self, action: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         # Torch action to numpy in stEVE's expected shape
         a = action.detach().cpu().numpy().astype(np.float32)
+
         # OmniSafe gives us (2,), stEVE expects (1, 2). Reshape.
         a = a.reshape(self._steve_action_space.shape)
 
+        # Clamp forward translation at the insertion limit before stepping
+        a, clamped = self._clamp_insertion(a)
+        if clamped:
+            self._clamp_steps += 1
+
         obs_dict, reward, terminated, truncated, info = self._env.step(a)
         self._last_obs_dict = obs_dict
+        self._step_nr += 1
 
         # Cost is computed from the current simulation state after the step
         cost_value = float(self._cost_fn(self._env.intervention.simulation))
 
         # Log both raw force numbers in info regardless of cost function used
         sim = self._env.intervention.simulation
-        info["force_max_along_device"] = max_along_device(sim)
+        f_max = max_along_device(sim)
+        info["force_max_along_device"] = f_max
         info["force_tip"] = tip_force(sim)
         info["force_solver_max"] = force_N(sim)
         info["cost_fn"] = self._cost_fn.name
 
-        # Guard: truncate before the inserted length reaches the device length
+        self._ep_return += float(reward)
+        self._ep_cost += cost_value
+        self._force_trace.append(float(f_max))
+
+        # Backstop only. The clamp should stop insertion well before this.
         inserted = np.asarray(
             self._env.intervention.device_lengths_inserted, dtype=np.float64
         )
-        over_insertion = bool(np.any(inserted > self._insertion_limit))
-        if over_insertion:
+        backstop_hit = bool(np.any(inserted > self._insertion_backstop))
+        if backstop_hit:
             truncated = True
+            print("WARNING: insertion backstop fired at %.1f mm, clamp has a bug"
+                  % float(inserted.max()))
         info["inserted_max"] = float(inserted.max())
-        info["over_insertion"] = over_insertion
+        info["clamped"] = clamped
 
-        # Why the episode ended, so early termination can be diagnosed
         if terminated:
             info["end_reason"] = "target_reached"
-        elif over_insertion:
-            info["end_reason"] = "insertion_limit"
+        elif backstop_hit:
+            info["end_reason"] = "insertion_backstop"
         elif truncated:
             info["end_reason"] = "steve_truncation"
         else:
             info["end_reason"] = None
 
+        if terminated or truncated:
+            self._flush_episode(info["end_reason"])
+            
         flat = flatten_obs(obs_dict)
         obs_t = torch.as_tensor(flat, dtype=torch.float32, device=self._device)
         reward_t = torch.tensor(float(reward), dtype=torch.float32, device=self._device)
