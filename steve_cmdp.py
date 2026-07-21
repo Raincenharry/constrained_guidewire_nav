@@ -33,6 +33,15 @@ from force_read import assert_force_available, max_along_device, tip_force, forc
 # Cost functions
 # ============================================================
 
+# Threshold where the hinge starts, and the ceiling that bounds runaway
+# buckling forces. These are separate from the episode budget d, and must
+# stay separate or the sensitivity analysis is uninterpretable.
+# Defined here because MaxAlongDeviceHinge uses them as default arguments,
+# which Python evaluates at definition time.
+COST_THRESHOLD_N = 0.85
+COST_CEILING_N = 5.0
+
+
 class CostFn:
     """Interface: take simulation, return non negative float."""
     def __call__(self, simulation) -> float:
@@ -50,7 +59,8 @@ class ZeroCost(CostFn):
 
 
 class MaxAlongDeviceHinge(CostFn):
-    def __init__(self, threshold: float = 0.85, ceiling: float = 5.0):
+    def __init__(self, threshold: float = COST_THRESHOLD_N,
+                 ceiling: float = COST_CEILING_N):
         self.threshold = float(threshold)
         self.ceiling = float(ceiling)
         
@@ -74,6 +84,7 @@ class MaxAlongDeviceHinge(CostFn):
 MAX_INSERTION_FRACTION = 0.85   # forward translation is clamped here
 HARD_INSERTION_FRACTION = 0.95  # backstop truncation, should never fire
 MAX_EPISODE_STEPS = 200
+
 # Anatomy variety. Arch morphology is the generalisation axis: the agent
 # trains on four arch types and is evaluated on two it has never seen.
 # This is what makes the R4 generalisation collapse reproducible.
@@ -380,6 +391,10 @@ class SteveCMDP(CMDP):
         if not EPISODE_LOG:
             return
         trace = np.asarray(self._force_trace, dtype=np.float64)
+        if trace.size:
+            excess = np.maximum(np.minimum(trace, COST_CEILING_N) - COST_THRESHOLD_N, 0.0)
+        else:
+            excess = np.zeros(0)
         row = {
             "wall_time": time.time(),
             "episode": self._episode_nr,
@@ -391,7 +406,10 @@ class SteveCMDP(CMDP):
             "force_mean": float(trace.mean()) if trace.size else 0.0,
             "force_max": float(trace.max()) if trace.size else 0.0,
             "force_p95": float(np.percentile(trace, 95)) if trace.size else 0.0,
-            "steps_over_threshold": int((trace > 0.85).sum()) if trace.size else 0,
+            "steps_over_threshold": int((trace > COST_THRESHOLD_N).sum()) if trace.size else 0,
+            "hinge_cost_shadow": float(excess.sum()) if trace.size else 0.0,
+            "excess_mean": float(excess.mean()) if trace.size else 0.0,
+            "excess_max": float(excess.max()) if trace.size else 0.0,
             "clamp_steps": self._clamp_steps,
             "inserted_final": float(
                 np.asarray(self._env.intervention.device_lengths_inserted).max()
@@ -483,7 +501,15 @@ class SteveCMDP(CMDP):
         return obs_t, reward_t, cost_t, term_t, trunc_t, info
 
     def set_seed(self, seed: int) -> None:
+        """OmniSafe constructs the env with default args and calls this
+        afterwards, so this is the only place the run seed actually
+        arrives. Reseed every generator here, not just the stored value."""
         self._seed = seed
+        self._anatomy_rng = random.Random(seed)
+        try:
+            self._env.intervention.target._rng = random.Random(seed)
+        except Exception as exc:
+            print("could not reseed target rng: %s" % exc)
 
     def sample_action(self) -> torch.Tensor:
         a = self._action_space.sample()
