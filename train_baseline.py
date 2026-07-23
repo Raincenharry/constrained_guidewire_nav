@@ -32,22 +32,26 @@ from steve_cmdp import SteveCMDP, ZeroCost
 
 
 _ACTIVE_COST_FN = None
+_ACTIVE_PENALTY_WEIGHT = 0.0
 _original_init = SteveCMDP.__init__
 
 
 def _patched_init(self, env_id, num_envs=1, device=torch.device("cpu"),
-                  cost_fn=None, seed=30, **kwargs):
+                  cost_fn=None, reward_penalty_weight=None, seed=30, **kwargs):
     if cost_fn is None:
         cost_fn = _ACTIVE_COST_FN
+    if reward_penalty_weight is None:
+        reward_penalty_weight = _ACTIVE_PENALTY_WEIGHT
     _original_init(self, env_id, num_envs=num_envs, device=device,
-                   cost_fn=cost_fn, seed=seed, **kwargs)
+                   cost_fn=cost_fn, reward_penalty_weight=reward_penalty_weight,
+                   seed=seed, **kwargs)
 
 
 SteveCMDP.__init__ = _patched_init
 
 
 def main():
-    global _ACTIVE_COST_FN
+    global _ACTIVE_COST_FN, _ACTIVE_PENALTY_WEIGHT
 
     p = argparse.ArgumentParser()
     p.add_argument("--steps", type=int, default=300000)
@@ -55,6 +59,10 @@ def main():
     p.add_argument("--tag", type=str, default="r1_baseline")
     p.add_argument("--steps_per_epoch", type=int, default=6000,
                    help="must divide --steps exactly, OmniSafe asserts this")
+    p.add_argument("--force_penalty", type=float, default=0.0,
+                   help="R4 weight on the force hinge in the reward. "
+                        "0.0 is condition 1 (R1, no force awareness). "
+                        "0.01 is the published Robertshaw value, condition 2.")
     args = p.parse_args()
 
     if args.steps % args.steps_per_epoch != 0:
@@ -64,6 +72,7 @@ def main():
         )
 
     _ACTIVE_COST_FN = ZeroCost()
+    _ACTIVE_PENALTY_WEIGHT = args.force_penalty
 
     custom_cfgs = {
         "seed": args.seed,
@@ -103,7 +112,11 @@ def main():
     }
 
     print("=" * 60)
-    print("R1 baseline, plain SAC, no safety")
+    if args.force_penalty == 0.0:
+        print("Condition 1: R1 baseline, plain SAC, no safety")
+    else:
+        print("Condition 2: R4, plain SAC, force penalty weight %g"
+              % args.force_penalty)
     print("steps: %d   seed: %d   tag: %s" % (args.steps, args.seed, args.tag))
     print("device: %s" % custom_cfgs["train_cfgs"]["device"])
     print("=" * 60)

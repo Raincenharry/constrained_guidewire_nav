@@ -42,6 +42,18 @@ COST_THRESHOLD_N = 0.85
 COST_CEILING_N = 5.0
 
 
+def force_hinge(f: float, threshold: float = COST_THRESHOLD_N,
+                ceiling: float = COST_CEILING_N) -> float:
+    """Excess force above threshold, with runaway buckling bounded.
+
+    Used in exactly two places, and they must never diverge: the constraint
+    cost in MaxAlongDeviceHinge (condition 3), and the R4 reward penalty
+    (condition 2). If they diverge, those two conditions stop seeing the same
+    force signal and the comparison is no longer single variable.
+    """
+    return max(0.0, min(f, ceiling) - threshold)
+
+
 class CostFn:
     """Interface: take simulation, return non negative float."""
     def __call__(self, simulation) -> float:
@@ -66,8 +78,7 @@ class MaxAlongDeviceHinge(CostFn):
         
 
     def __call__(self, simulation) -> float:
-        f = min(max_along_device(simulation), self.ceiling)
-        return max(0.0, f - self.threshold)
+        return force_hinge(max_along_device(simulation), self.threshold, self.ceiling)
 
     @property
     def name(self) -> str:
@@ -229,6 +240,7 @@ class SteveCMDP(CMDP):
         num_envs: int = 1,
         device: torch.device = DEVICE_CPU,
         cost_fn: Optional[CostFn] = None,
+        reward_penalty_weight: float = 0.0,
         seed: int = 30,
         train: bool = True,
         vary_anatomy: bool = True,
@@ -240,6 +252,9 @@ class SteveCMDP(CMDP):
 
         self._device = torch.device(device)
         self._cost_fn = cost_fn if cost_fn is not None else ZeroCost()
+        # R4 weight on the force hinge in the reward. 0.0 is condition 1,
+        # 0.01 is the published Robertshaw value for condition 2.
+        self._reward_penalty_weight = float(reward_penalty_weight)
         self._seed = seed
         self._num_envs = 1
         self._train = bool(train)
@@ -283,6 +298,7 @@ class SteveCMDP(CMDP):
         self._step_nr = 0
         self._ep_return = 0.0
         self._ep_cost = 0.0
+        self._ep_penalty = 0.0
         self._force_trace = []
         self._clamp_steps = 0
         self._path_length_at_reset = 0.0
@@ -338,6 +354,7 @@ class SteveCMDP(CMDP):
         self._step_nr = 0
         self._ep_return = 0.0
         self._ep_cost = 0.0
+        self._ep_penalty = 0.0
         self._force_trace = []
         self._clamp_steps = 0
         try:
@@ -403,6 +420,8 @@ class SteveCMDP(CMDP):
             "success": int(end_reason == "target_reached"),
             "ep_return": self._ep_return,
             "ep_cost": self._ep_cost,
+            "ep_penalty": self._ep_penalty,
+            "reward_penalty_weight": self._reward_penalty_weight,
             "force_mean": float(trace.mean()) if trace.size else 0.0,
             "force_max": float(trace.max()) if trace.size else 0.0,
             "force_p95": float(np.percentile(trace, 95)) if trace.size else 0.0,
@@ -462,6 +481,18 @@ class SteveCMDP(CMDP):
         info["force_tip"] = tip_force(sim)
         info["force_solver_max"] = force_N(sim)
         info["cost_fn"] = self._cost_fn.name
+
+        # R4, condition 2: blend the force penalty into the reward at a fixed
+        # weight. Weight zero leaves R1 byte identical, so conditions 1 and 2
+        # differ by this one number and nothing else. The hinge is the same
+        # function the constraint cost uses, so conditions 2 and 3 see the
+        # same force signal.
+        penalty = 0.0
+        if self._reward_penalty_weight != 0.0:
+            penalty = self._reward_penalty_weight * force_hinge(f_max)
+            reward = float(reward) - penalty
+        info["force_penalty"] = penalty
+        self._ep_penalty += penalty
 
         self._ep_return += float(reward)
         self._ep_cost += cost_value
