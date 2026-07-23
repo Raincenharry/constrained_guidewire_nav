@@ -158,6 +158,20 @@ def main() -> None:
     # the evaluation sequence is identical regardless of construction order.
     env.set_seed(args.seed)
 
+    # OmniSafe wraps the env with ActionScale during training, which maps the
+    # actor's tanh output in [-1, 1] onto the real action bounds. evaluate.py
+    # builds SteveCMDP directly with no wrappers, so that map has to be applied
+    # by hand. Without it a full push of 1.0 reaches stEVE as 1 mm/s instead of
+    # 40 mm/s and the wire inserts 26 mm in 200 steps instead of 250.
+    act_low = torch.as_tensor(env.action_space.low, dtype=torch.float32)
+    act_high = torch.as_tensor(env.action_space.high, dtype=torch.float32)
+    print("action bounds: %s to %s" % (env.action_space.low, env.action_space.high))
+    sys.stdout.flush()
+
+    def scale_action(act: torch.Tensor) -> torch.Tensor:
+        act = act.clamp(-1.0, 1.0)
+        return act_low + (act + 1.0) * 0.5 * (act_high - act_low)
+
     actor = build_actor(env, cfg)
     load_actor_weights(actor, args.checkpoint)
 
@@ -165,7 +179,8 @@ def main() -> None:
     for ep in range(args.episodes):
         obs, _ = env.reset()
         for _ in range(env.max_episode_steps):
-            action = deterministic_action(actor, obs)
+            raw_action = deterministic_action(actor, obs)
+            action = scale_action(raw_action)
             obs, reward, cost, terminated, truncated, info = env.step(action)
             if bool(terminated) or bool(truncated):
                 break
