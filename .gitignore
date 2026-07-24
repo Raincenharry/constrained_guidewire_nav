@@ -7,3 +7,6 @@ omnisafe_runs/
 *.pyc
 __pycache__/
 *.log
+ckpt/torch_save/
+ckpt/tb/
+data/
