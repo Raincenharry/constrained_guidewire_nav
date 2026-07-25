@@ -85,6 +85,32 @@ class MaxAlongDeviceHinge(CostFn):
         return "MaxAlongDeviceHinge(t=%.3f,c=%.3f)" % (self.threshold, self.ceiling)
 
 
+class TipForceHinge(CostFn):
+    """Hinge on the tip node force rather than the max along the device.
+
+    Same hinge shape and same shared force_hinge as MaxAlongDeviceHinge, so
+    the two cost functions differ only in which force they read. The tip
+    signal stays in the regime reported by Robertshaw et al. 2025 (mean tip
+    force 0.24 to 0.29 N, max under 1.0 N), whereas max along device is
+    dominated by buckling artefacts an order of magnitude larger that pin the
+    ceiling in the deep insertion region where the targets are. The tip is
+    blind to shaft loading on curved sections, which is a stated limitation,
+    and shadow_max is logged alongside on every run so that limitation can be
+    quantified.
+    """
+    def __init__(self, threshold: float = COST_THRESHOLD_N,
+                 ceiling: float = COST_CEILING_N):
+        self.threshold = float(threshold)
+        self.ceiling = float(ceiling)
+
+    def __call__(self, simulation) -> float:
+        return force_hinge(tip_force(simulation), self.threshold, self.ceiling)
+
+    @property
+    def name(self) -> str:
+        return "TipForceHinge(t=%.3f,c=%.3f)" % (self.threshold, self.ceiling)
+
+
 # ============================================================
 # Insertion limit
 # ============================================================
@@ -300,6 +326,7 @@ class SteveCMDP(CMDP):
         self._ep_cost = 0.0
         self._ep_penalty = 0.0
         self._force_trace = []
+        self._tip_trace = []
         self._clamp_steps = 0
         self._path_length_at_reset = 0.0
 
@@ -356,6 +383,7 @@ class SteveCMDP(CMDP):
         self._ep_cost = 0.0
         self._ep_penalty = 0.0
         self._force_trace = []
+        self._tip_trace = []
         self._clamp_steps = 0
         try:
             self._path_length_at_reset = float(self._env.pathfinder.path_length)
@@ -412,6 +440,12 @@ class SteveCMDP(CMDP):
             excess = np.maximum(np.minimum(trace, COST_CEILING_N) - COST_THRESHOLD_N, 0.0)
         else:
             excess = np.zeros(0)
+        tip_trace = np.asarray(self._tip_trace, dtype=np.float64)
+        if tip_trace.size:
+            tip_excess = np.maximum(
+                np.minimum(tip_trace, COST_CEILING_N) - COST_THRESHOLD_N, 0.0)
+        else:
+            tip_excess = np.zeros(0)
         row = {
             "wall_time": time.time(),
             "episode": self._episode_nr,
@@ -427,6 +461,11 @@ class SteveCMDP(CMDP):
             "force_p95": float(np.percentile(trace, 95)) if trace.size else 0.0,
             "steps_over_threshold": int((trace > COST_THRESHOLD_N).sum()) if trace.size else 0,
             "hinge_cost_shadow": float(excess.sum()) if trace.size else 0.0,
+            "shadow_max": float(excess.sum()) if trace.size else 0.0,
+            "shadow_tip": float(tip_excess.sum()) if tip_trace.size else 0.0,
+            "tip_mean": float(tip_trace.mean()) if tip_trace.size else 0.0,
+            "tip_max": float(tip_trace.max()) if tip_trace.size else 0.0,
+            "tip_steps_over_threshold": int((tip_trace > COST_THRESHOLD_N).sum()) if tip_trace.size else 0,
             "excess_mean": float(excess.mean()) if trace.size else 0.0,
             "excess_max": float(excess.max()) if trace.size else 0.0,
             "clamp_steps": self._clamp_steps,
@@ -477,19 +516,22 @@ class SteveCMDP(CMDP):
         # Log both raw force numbers in info regardless of cost function used
         sim = self._env.intervention.simulation
         f_max = max_along_device(sim)
+        f_tip = tip_force(sim)
         info["force_max_along_device"] = f_max
-        info["force_tip"] = tip_force(sim)
+        info["force_tip"] = f_tip
         info["force_solver_max"] = force_N(sim)
         info["cost_fn"] = self._cost_fn.name
 
         # R4, condition 2: blend the force penalty into the reward at a fixed
         # weight. Weight zero leaves R1 byte identical, so conditions 1 and 2
-        # differ by this one number and nothing else. The hinge is the same
-        # function the constraint cost uses, so conditions 2 and 3 see the
-        # same force signal.
+        # differ by this one number and nothing else. The hinge must read the
+        # same force the active constraint reads, so conditions 2 and 3 stay
+        # single variable: when the cost function is the tip hinge, R4 penalises
+        # tip force too, and when it is the max hinge, R4 penalises max force.
         penalty = 0.0
         if self._reward_penalty_weight != 0.0:
-            penalty = self._reward_penalty_weight * force_hinge(f_max)
+            f_penalty = f_tip if isinstance(self._cost_fn, TipForceHinge) else f_max
+            penalty = self._reward_penalty_weight * force_hinge(f_penalty)
             reward = float(reward) - penalty
         info["force_penalty"] = penalty
         self._ep_penalty += penalty
@@ -497,6 +539,7 @@ class SteveCMDP(CMDP):
         self._ep_return += float(reward)
         self._ep_cost += cost_value
         self._force_trace.append(float(f_max))
+        self._tip_trace.append(float(f_tip))
 
         # Backstop only. The clamp should stop insertion well before this.
         inserted = np.asarray(

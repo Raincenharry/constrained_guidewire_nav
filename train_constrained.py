@@ -30,7 +30,7 @@ import torch
 import omnisafe
 
 import steve_cmdp
-from steve_cmdp import SteveCMDP, MaxAlongDeviceHinge
+from steve_cmdp import SteveCMDP, MaxAlongDeviceHinge, TipForceHinge
 
 
 _ACTIVE_COST_FN = None
@@ -73,6 +73,8 @@ def main():
                    help="force hinge threshold in newtons")
     p.add_argument("--ceiling", type=float, default=5.0,
                    help="raw force ceiling before the hinge, bounds buckling artefacts")
+    p.add_argument("--cost_fn", type=str, default="max", choices=["max", "tip"],
+                   help="which force the constraint hinges on: max along device or tip node")
     p.add_argument("--start_learning_steps", type=int, default=10000,
                    help="matches train_baseline.py. Lower it only for local "
                         "wiring checks that are too short to reach it.")
@@ -93,8 +95,9 @@ def main():
             % (args.warmup_epochs, n_epochs)
         )
 
-    _ACTIVE_COST_FN = MaxAlongDeviceHinge(threshold=args.threshold,
-                                          ceiling=args.ceiling)
+    _COST_CLASSES = {"max": MaxAlongDeviceHinge, "tip": TipForceHinge}
+    _ACTIVE_COST_FN = _COST_CLASSES[args.cost_fn](threshold=args.threshold,
+                                                  ceiling=args.ceiling)
     _ACTIVE_PENALTY_WEIGHT = 0.0
 
     custom_cfgs = {
