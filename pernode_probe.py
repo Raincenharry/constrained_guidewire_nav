@@ -57,13 +57,17 @@ def per_node_force():
 
 for i in range(1600):
     env.step(np.array([[20.0, 0.0]]))
-    if i % 100 == 0 or (i > 1450):
-        mags, gmax = per_node_force()
-        if mags:
-            top = sorted(mags.items(), key=lambda kv: -kv[1])[:3]
-            top_str = "  ".join("n%d=%.3f" % (n, v) for n, v in top)
-            join_max = max(mags.values())
-            print("step %4d  global_max=%.3f  join_max=%.3f  top: %s" % (i, gmax, join_max, top_str))
-        else:
-            print("step %4d  no contact" % i)
+    mags, gmax = per_node_force()
+    pos = np.array(simulation._instruments_combined.DOFs.position.value)
+    if i == 0:
+        print("n_nodes=%d  using tip=%d" % (len(pos), len(pos) - 1))
+    tip = len(pos) - 1
+    if mags:
+        amax = max(mags, key=mags.get)
+        print("step %4d  tip=%3d  argmax=%3d  gap=%3d  f=%9.3f  "
+              "tip_xyz=%s  argmax_xyz=%s"
+              % (i, tip, amax, tip - amax, mags[amax],
+                 np.round(pos[tip][:3], 1), np.round(pos[amax][:3], 1)))
+    else:
+        print("step %4d  tip=%3d  no contact" % (i, tip))
 env.close()
