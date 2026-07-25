@@ -10,3 +10,7 @@ __pycache__/
 ckpt/torch_save/
 ckpt/tb/
 data/
+ckpt/
+tip_probe_s*.csv
+figures/
+*.pt
