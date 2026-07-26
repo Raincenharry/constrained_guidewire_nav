@@ -28,7 +28,7 @@ import torch
 import omnisafe
 
 import steve_cmdp
-from steve_cmdp import SteveCMDP, ZeroCost
+from steve_cmdp import SteveCMDP, ZeroCost, TipForceHinge
 
 
 _ACTIVE_COST_FN = None
@@ -62,7 +62,13 @@ def main():
     p.add_argument("--force_penalty", type=float, default=0.0,
                    help="R4 weight on the force hinge in the reward. "
                         "0.0 is condition 1 (R1, no force awareness). "
-                        "0.01 is the published Robertshaw value, condition 2.")
+                        "Nonzero is condition 2 (R4). The signal it hinges on "
+                        "is chosen by --cost_fn.")
+    p.add_argument("--cost_fn", type=str, default="max", choices=["max", "tip"],
+                   help="Which force signal the R4 reward penalty hinges on. "
+                        "SAC never uses the cost, so this selects the penalty "
+                        "signal only. Must match the constrained condition or "
+                        "the comparison stops being single variable.")
     args = p.parse_args()
 
     if args.steps % args.steps_per_epoch != 0:
@@ -71,8 +77,15 @@ def main():
             % (args.steps, args.steps_per_epoch)
         )
 
-    _ACTIVE_COST_FN = ZeroCost()
+    # TipForceHinge here constrains nothing, SAC ignores the cost. It is what
+    # makes steve_cmdp route the R4 penalty through tip force instead of max
+    # along device, via the isinstance check in step().
+    _ACTIVE_COST_FN = TipForceHinge() if args.cost_fn == "tip" else ZeroCost()
     _ACTIVE_PENALTY_WEIGHT = args.force_penalty
+
+    print("condition: %s | penalty weight %.4f | penalty signal %s"
+          % ("2 (R4)" if args.force_penalty else "1 (R1)",
+             args.force_penalty, args.cost_fn))
 
     custom_cfgs = {
         "seed": args.seed,
