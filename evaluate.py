@@ -27,6 +27,7 @@ def _preset_episode_log() -> str:
     ap.add_argument("--tag", default="")
     ap.add_argument("--pool", default="test")
     ap.add_argument("--seed", type=int, default=100)
+    ap.add_argument("--stochastic", action="store_true")
     known, _ = ap.parse_known_args()
 
     tag = known.tag
@@ -39,6 +40,8 @@ def _preset_episode_log() -> str:
         tag = "%s_%s" % (run, epoch)
     if not tag:
         tag = "eval"
+    if known.stochastic:
+        tag = tag + "_stoch"
 
     path = os.path.abspath(
         "./evals/%s_%s_seed%d.csv" % (tag, known.pool, known.seed)
@@ -108,16 +111,25 @@ def load_actor_weights(actor: torch.nn.Module, checkpoint_path: str) -> None:
     actor.eval()
 
 
-def deterministic_action(actor: torch.nn.Module, obs: torch.Tensor) -> torch.Tensor:
-    """Mean action rather than a sample. Evaluation must not include
-    exploration noise or the numbers reflect the sampler, not the policy."""
+def policy_action(actor: torch.nn.Module, obs: torch.Tensor,
+                  deterministic: bool = True) -> torch.Tensor:
+    """Mean action when deterministic, otherwise a sample from the policy.
+
+    Deterministic is the default and the headline protocol, matching what the
+    reference paper reports. Stochastic exists because the mean action is not
+    the policy: a distribution whose mean sits between two branch choices
+    commits to neither, while sampled actions resolve it. Arch type II fails
+    every deterministic episode and succeeds during training at the rate of
+    type I, which is that effect. The constrained policies show it more
+    strongly than the unconstrained ones, so both are measured.
+    """
     with torch.no_grad():
         try:
-            return actor.predict(obs, deterministic=True)
+            return actor.predict(obs, deterministic=deterministic)
         except (AttributeError, TypeError):
             # Fallback for actor classes without predict()
             dist = actor(obs)
-            return dist.mean
+            return dist.mean if deterministic else dist.sample()
 
 
 def main() -> None:
@@ -131,7 +143,18 @@ def main() -> None:
     p.add_argument("--tag", type=str, default="")
     p.add_argument("--cost", type=str, default="zero", choices=["zero", "hinge"],
                    help="hinge logs a live ep_cost as well as the shadow cost")
+    p.add_argument("--stochastic", action="store_true",
+                   help="sample from the policy instead of taking the mean "
+                        "action. Off by default, so deterministic stays the "
+                        "headline protocol and every existing eval CSV "
+                        "remains comparable.")
     args = p.parse_args()
+
+    # env.set_seed drives the anatomy and target sequence but not torch, so a
+    # stochastic run would be irreproducible without this. Deterministic runs
+    # are unaffected, they never draw from the generator.
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
 
     if not os.path.exists(args.checkpoint):
         raise SystemExit("checkpoint not found: %s" % args.checkpoint)
@@ -141,7 +164,9 @@ def main() -> None:
 
     print("=" * 60)
     print("evaluating %s" % args.checkpoint)
-    print("pool: %s   episodes: %d   seed: %d" % (args.pool, args.episodes, args.seed))
+    print("pool: %s   episodes: %d   seed: %d   mode: %s"
+          % (args.pool, args.episodes, args.seed,
+             "stochastic" if args.stochastic else "deterministic"))
     print("trained with seed %s" % cfg.get("seed"))
     print("episode log: %s" % EPISODE_LOG_PATH)
     print("=" * 60)
@@ -179,7 +204,8 @@ def main() -> None:
     for ep in range(args.episodes):
         obs, _ = env.reset()
         for _ in range(env.max_episode_steps):
-            raw_action = deterministic_action(actor, obs)
+            raw_action = policy_action(actor, obs,
+                                       deterministic=not args.stochastic)
             action = scale_action(raw_action)
             obs, reward, cost, terminated, truncated, info = env.step(action)
             if bool(terminated) or bool(truncated):
