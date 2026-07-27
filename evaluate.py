@@ -57,7 +57,7 @@ import torch
 
 from omnisafe.models.actor.actor_builder import ActorBuilder
 
-from steve_cmdp import SteveCMDP, ZeroCost, MaxAlongDeviceHinge
+from steve_cmdp import SteveCMDP, ZeroCost, MaxAlongDeviceHinge, TipForceHinge
 
 
 def find_config(checkpoint_path: str) -> dict:
@@ -141,8 +141,8 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=100,
                    help="drives the evaluation anatomy and target sequence")
     p.add_argument("--tag", type=str, default="")
-    p.add_argument("--cost", type=str, default="zero", choices=["zero", "hinge"],
-                   help="hinge logs a live ep_cost as well as the shadow cost")
+    p.add_argument("--cost", type=str, default="zero", choices=["zero", "max", "tip"],
+                   help="max or tip logs a live ep_cost as well as the shadow cost")
     p.add_argument("--stochastic", action="store_true",
                    help="sample from the policy instead of taking the mean "
                         "action. Off by default, so deterministic stays the "
@@ -160,7 +160,13 @@ def main() -> None:
         raise SystemExit("checkpoint not found: %s" % args.checkpoint)
 
     cfg = find_config(args.checkpoint)
-    cost_fn = ZeroCost() if args.cost == "zero" else MaxAlongDeviceHinge()
+    
+    if args.cost == "zero":
+        cost_fn = ZeroCost()
+    elif args.cost == "tip":
+        cost_fn = TipForceHinge()
+    else:
+        cost_fn = MaxAlongDeviceHinge()
 
     print("=" * 60)
     print("evaluating %s" % args.checkpoint)
