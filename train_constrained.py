@@ -78,6 +78,14 @@ def main():
     p.add_argument("--start_learning_steps", type=int, default=10000,
                    help="matches train_baseline.py. Lower it only for local "
                         "wiring checks that are too short to reach it.")
+    p.add_argument("--anneal_from", type=float, default=None,
+                   help="If set, d starts here and descends linearly to "
+                        "--cost_limit, reaching it at --anneal_end_epoch. "
+                        "If unset, d is fixed and behaviour is identical to "
+                        "every run before 27 July.")
+    p.add_argument("--anneal_end_epoch", type=int, default=None,
+                   help="Epoch at which d reaches --cost_limit. Required "
+                        "when --anneal_from is set.")
     args = p.parse_args()
 
     if args.steps % args.steps_per_epoch != 0:
@@ -94,6 +102,20 @@ def main():
             "an unconstrained baseline wearing a SACPID tag"
             % (args.warmup_epochs, n_epochs)
         )
+    if (args.anneal_from is None) != (args.anneal_end_epoch is None):
+        raise SystemExit("--anneal_from and --anneal_end_epoch must be given together")
+    if args.anneal_from is not None:
+        if args.anneal_end_epoch <= args.warmup_epochs:
+            raise SystemExit(
+                "--anneal_end_epoch (%d) must exceed --warmup_epochs (%d), "
+                "otherwise the descent finishes before the controller is ever "
+                "called and this is a fixed budget run at --cost_limit"
+                % (args.anneal_end_epoch, args.warmup_epochs))
+        if args.anneal_from <= args.cost_limit:
+            raise SystemExit(
+                "--anneal_from (%g) must exceed --cost_limit (%g). The point "
+                "is to descend onto the budget from above."
+                % (args.anneal_from, args.cost_limit))
 
     _COST_CLASSES = {"max": MaxAlongDeviceHinge, "tip": TipForceHinge}
     _ACTIVE_COST_FN = _COST_CLASSES[args.cost_fn](threshold=args.threshold,
@@ -155,7 +177,7 @@ def main():
     }
 
     print("=" * 60)
-    print("Condition 3: PID Lagrangian SAC, max along device force hinge")
+    print("Condition 3: PID Lagrangian SAC, %s force hinge" % args.cost_fn)
     print("d (cost_limit): %g newton steps   warmup_epochs: %d of %d"
           % (args.cost_limit, args.warmup_epochs, n_epochs))
     print("cost fn: %s  threshold %g N  ceiling %g N"
@@ -172,6 +194,43 @@ def main():
         env_id="SteveNav-v0",
         custom_cfgs=custom_cfgs,
     )
+
+    if args.anneal_from is not None:
+        alg = agent.agent
+        lag = alg._lagrange
+        _orig_pid_update = lag.pid_update
+        _seen = {"epoch": -1}
+
+        w = args.warmup_epochs
+        e_end = args.anneal_end_epoch
+        d0 = args.anneal_from
+        d1 = args.cost_limit
+
+        def _d_for_epoch(e):
+            if e <= w:
+                return d0
+            if e >= e_end:
+                return d1
+            frac = (e - w) / float(e_end - w)
+            return d0 + (d1 - d0) * frac
+
+        def _annealed_pid_update(ep_cost_avg):
+            e = alg._epoch
+            d = _d_for_epoch(e)
+            lag._cost_limit = d
+            if e != _seen["epoch"]:
+                _seen["epoch"] = e
+                print("ANNEAL epoch %d  d=%.2f  ep_cost=%.2f  lambda=%.6f"
+                      % (e, d, ep_cost_avg, lag.lagrangian_multiplier),
+                      flush=True)
+            return _orig_pid_update(ep_cost_avg)
+
+        lag.pid_update = _annealed_pid_update
+        print("ANNEALING ON: d %g -> %g, held through warmup epoch %d, "
+              "reaching %g at epoch %d" % (d0, d1, w, d1, e_end))
+    else:
+        print("ANNEALING OFF: d fixed at %g" % args.cost_limit)
+
     agent.learn()
     print("done: %s" % args.tag)
 
