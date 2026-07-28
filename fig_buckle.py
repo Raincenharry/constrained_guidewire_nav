@@ -1,4 +1,5 @@
-import glob, numpy as np, pandas as pd, matplotlib
+import glob, re, numpy as np, pandas as pd, matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
@@ -11,24 +12,24 @@ def cond(name):
     return None
 
 rows = []
-import re
 for f in sorted(glob.glob('data/evals/*train_seed100.csv')):
     n = f.split('/')[-1]
-    # Checkpoint evaluations (sacpid_..._ep30_...) are a separate seed
-    # dependent analysis and belong in their own figure, not this one.
+    # Checkpoint evaluations (..._ep30_...) are a separate seed dependent
+    # analysis and belong in their own figure, not this one.
     if re.search(r'_ep\d+_', n):
         print('excluded, checkpoint eval: %s' % n)
+        continue
+    d = pd.read_csv(f)
+    # n=100 is the protocol. Probe and canary runs are 2 to 20 episodes and
+    # would weight equally with a full run. Checked before the condition
+    # lookup so a short file reports its real reason rather than falling
+    # through as an unrecognised name.
+    if len(d) < 100:
+        print('excluded, n=%d not a full evaluation: %s' % (len(d), n))
         continue
     c = cond(n)
     if c is None:
         print('excluded, unrecognised condition: %s' % n)
-        continue
-    d = pd.read_csv(f)
-    # n=100 is the protocol. Probe and canary runs are 2 to 20 episodes and
-    # would weight equally with a full run. This is the guard that matters;
-    # the name based skip above is a convenience, not the safeguard.
-    if len(d) < 100:
-        print('excluded, n=%d not a full evaluation: %s' % (len(d), n))
         continue
     rows.append(dict(cond=c, ins=d.inserted_final.mean(),
                      rate=(d.force_max > 500).mean(), run=n))
