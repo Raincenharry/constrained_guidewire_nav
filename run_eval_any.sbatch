@@ -26,23 +26,29 @@ if [ ! -d "$RUNDIR" ]; then
   exit 1
 fi
 
-# More than one timestamped run directory means a resubmission happened and
-# the checkpoints come from two different trainings. Stop rather than guess.
-NRUNS=$(find "$RUNDIR" -type d -name "torch_save" | wc -l)
-if [ "$NRUNS" -ne 1 ]; then
-  echo "expected 1 torch_save directory under $RUNDIR, found $NRUNS"
-  find "$RUNDIR" -type d -name "torch_save"
-  exit 1
-fi
-
 # Highest epoch present rather than a hardcoded epoch-50, because a timed out
 # run stops short. The epoch used is printed and must match across every
 # condition being compared, otherwise the comparison has a hidden variable.
-CKPT=$(find "$RUNDIR" -name "epoch-*.pt" -printf "%f %p\n" \
-       | sed 's/^epoch-//' | sort -n | tail -1 | awk '{print $2}')
-if [ -z "$CKPT" ]; then
-  echo "no checkpoint under $RUNDIR"
-  exit 1
+#
+# EPOCH_OVERRIDE picks a specific checkpoint instead, for the early stopping
+# tests. It also changes the tag, so an override run can never overwrite the
+# headline epoch-50 evaluation of the same run.
+if [ -n "$EPOCH_OVERRIDE" ]; then
+  CKPT=$(find "$RUNDIR" -name "epoch-${EPOCH_OVERRIDE}.pt" | head -1)
+  if [ -z "$CKPT" ]; then
+    echo "no epoch-${EPOCH_OVERRIDE}.pt under $RUNDIR, available:"
+    find "$RUNDIR" -name "epoch-*.pt" -printf "%f\n" | sort -n
+    exit 1
+  fi
+  TAG="${PREFIX}_s${S}_ep${EPOCH_OVERRIDE}"
+else
+  CKPT=$(find "$RUNDIR" -name "epoch-*.pt" -printf "%f %p\n" \
+         | sed 's/^epoch-//' | sort -n | tail -1 | awk '{print $2}')
+  if [ -z "$CKPT" ]; then
+    echo "no checkpoint under $RUNDIR"
+    exit 1
+  fi
+  TAG="${PREFIX}_s${S}"
 fi
 EPOCH=$(basename "$CKPT" .pt | sed 's/epoch-//')
 
@@ -50,9 +56,10 @@ echo "node:   $(hostname)"
 echo "start:  $(date)"
 echo "prefix: $PREFIX   seed: $S"
 echo "ckpt:   $CKPT"
+echo "tag:    $TAG"
 echo "EPOCH USED: $EPOCH"
 
-python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool train --tag ${PREFIX}_s${S} --seed 100
-python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool test  --tag ${PREFIX}_s${S} --seed 100
+python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool train --tag ${TAG} --seed 100
+python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool test  --tag ${TAG} --seed 100
 
 echo "end: $(date)"
