@@ -3,7 +3,7 @@
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --time=3-00:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --array=0-2
 #SBATCH --output=slurm_logs/tipki8_%A_%a.out
 #SBATCH --error=slurm_logs/tipki8_%A_%a.err
