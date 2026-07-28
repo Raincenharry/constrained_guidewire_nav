@@ -86,6 +86,16 @@ def main():
     p.add_argument("--anneal_end_epoch", type=int, default=None,
                    help="Epoch at which d reaches --cost_limit. Required "
                         "when --anneal_from is set.")
+    p.add_argument("--pid_kp", type=float, default=None,
+                   help="proportional gain. Unset leaves the OmniSafe "
+                        "default of 1e-6.")
+    p.add_argument("--pid_ki", type=float, default=None,
+                   help="integral gain. Unset leaves the OmniSafe default "
+                        "of 1e-7, so every run before 28 July reproduces "
+                        "byte identically.")
+    p.add_argument("--pid_kd", type=float, default=None,
+                   help="derivative gain. Unset leaves the OmniSafe "
+                        "default of 1e-7.")
     args = p.parse_args()
 
     if args.steps % args.steps_per_epoch != 0:
@@ -163,9 +173,15 @@ def main():
         "lagrange_cfgs": {
             "cost_limit": args.cost_limit,
             "lagrangian_multiplier_init": 0.001,
-            # PID gains left at the OmniSafe defaults. They were validated
-            # in the 20 July smoke run against episode costs in the
-            # hundreds, which is the regime here. Do not retune pre emptively.
+            # PID gains default to kp 1e-6, ki 1e-7, kd 1e-7. The 21 July
+            # note said not to retune pre emptively. That no longer holds.
+            # ddpg_pid.py calls pid_update from _update, which runs once
+            # per gradient step rather than once per epoch, so the integral
+            # accumulates thousands of times against one epoch level Jc.
+            # The 28 July anneal run showed lambda still climbing while the
+            # error shrank to 2, which is windup, not proportional
+            # response. Gains are now settable via --pid_kp/ki/kd.
+            # Unset means default, so earlier runs reproduce exactly.
         },
         "logger_cfgs": {
             "use_wandb": False,
@@ -176,8 +192,18 @@ def main():
         },
     }
 
+    for _name, _val in (("pid_kp", args.pid_kp),
+                        ("pid_ki", args.pid_ki),
+                        ("pid_kd", args.pid_kd)):
+        if _val is not None:
+            custom_cfgs["lagrange_cfgs"][_name] = _val
+
     print("=" * 60)
     print("Condition 3: PID Lagrangian SAC, %s force hinge" % args.cost_fn)
+    print("PID gains: kp=%s  ki=%s  kd=%s"
+          % (custom_cfgs["lagrange_cfgs"].get("pid_kp", "default 1e-6"),
+             custom_cfgs["lagrange_cfgs"].get("pid_ki", "default 1e-7"),
+             custom_cfgs["lagrange_cfgs"].get("pid_kd", "default 1e-7")))
     print("d (cost_limit): %g newton steps   warmup_epochs: %d of %d"
           % (args.cost_limit, args.warmup_epochs, n_epochs))
     print("cost fn: %s  threshold %g N  ceiling %g N"
@@ -195,13 +221,13 @@ def main():
         custom_cfgs=custom_cfgs,
     )
 
-    if args.anneal_from is not None:
-        alg = agent.agent
-        lag = alg._lagrange
-        _orig_pid_update = lag.pid_update
-        _seen = {"epoch": -1}
+    alg = agent.agent
+    lag = alg._lagrange
+    _orig_pid_update = lag.pid_update
+    _state = {"epoch": -1, "calls": 0, "prev": 0}
+    w = args.warmup_epochs
 
-        w = args.warmup_epochs
+    if args.anneal_from is not None:
         e_end = args.anneal_end_epoch
         d0 = args.anneal_from
         d1 = args.cost_limit
@@ -213,21 +239,39 @@ def main():
                 return d1
             frac = (e - w) / float(e_end - w)
             return d0 + (d1 - d0) * frac
+    else:
+        def _d_for_epoch(e):
+            return args.cost_limit
 
-        def _annealed_pid_update(ep_cost_avg):
-            e = alg._epoch
-            d = _d_for_epoch(e)
-            lag._cost_limit = d
-            if e != _seen["epoch"]:
-                _seen["epoch"] = e
+    def _monitored_pid_update(ep_cost_avg):
+        e = alg._epoch
+        d = _d_for_epoch(e)
+        lag._cost_limit = d
+        if e != _state["epoch"]:
+            _state["prev"] = _state["calls"]
+            _state["calls"] = 0
+            _state["epoch"] = e
+            if args.anneal_from is not None:
+                # Format unchanged so read_anneal.py keeps working.
                 print("ANNEAL epoch %d  d=%.2f  ep_cost=%.2f  lambda=%.6f"
                       % (e, d, ep_cost_avg, lag.lagrangian_multiplier),
                       flush=True)
-            return _orig_pid_update(ep_cost_avg)
+            else:
+                print("LAG epoch %d  d=%.2f  ep_cost=%.2f  lambda=%.6f  "
+                      "updates_prev_epoch=%d"
+                      % (e, d, ep_cost_avg, lag.lagrangian_multiplier,
+                         _state["prev"]),
+                      flush=True)
+        _state["calls"] += 1
+        return _orig_pid_update(ep_cost_avg)
 
-        lag.pid_update = _annealed_pid_update
+    lag.pid_update = _monitored_pid_update
+
+    if args.anneal_from is not None:
         print("ANNEALING ON: d %g -> %g, held through warmup epoch %d, "
-              "reaching %g at epoch %d" % (d0, d1, w, d1, e_end))
+              "reaching %g at epoch %d"
+              % (args.anneal_from, args.cost_limit, w,
+                 args.cost_limit, args.anneal_end_epoch))
     else:
         print("ANNEALING OFF: d fixed at %g" % args.cost_limit)
 
