@@ -11,19 +11,35 @@ def cond(name):
     return None
 
 rows = []
+import re
 for f in sorted(glob.glob('data/evals/*train_seed100.csv')):
     n = f.split('/')[-1]
-    if 'canary' in n or 'probe' in n:
+    # Checkpoint evaluations (sacpid_..._ep30_...) are a separate seed
+    # dependent analysis and belong in their own figure, not this one.
+    if re.search(r'_ep\d+_', n):
+        print('excluded, checkpoint eval: %s' % n)
         continue
     c = cond(n)
     if c is None:
+        print('excluded, unrecognised condition: %s' % n)
         continue
     d = pd.read_csv(f)
+    # n=100 is the protocol. Probe and canary runs are 2 to 20 episodes and
+    # would weight equally with a full run. This is the guard that matters;
+    # the name based skip above is a convenience, not the safeguard.
     if len(d) < 100:
+        print('excluded, n=%d not a full evaluation: %s' % (len(d), n))
         continue
     rows.append(dict(cond=c, ins=d.inserted_final.mean(),
                      rate=(d.force_max > 500).mean(), run=n))
 t = pd.DataFrame(rows)
+
+expected = {'R1 unconstrained': 5, 'R4 tip w0.001': 2,
+            'R4 max era w0.0003': 3, 'SACPID tip': 6}
+got = t.groupby('cond').size().to_dict()
+for c, k in expected.items():
+    if got.get(c, 0) != k:
+        print('WARNING %s: expected %d runs, got %d' % (c, k, got.get(c, 0)))
 print(t.groupby('cond')[['ins', 'rate']].mean().round(3))
 
 sp = t[t['cond'] == 'SACPID tip']
