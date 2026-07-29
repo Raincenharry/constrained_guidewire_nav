@@ -59,6 +59,8 @@ echo "ckpt:   $CKPT"
 echo "tag:    $TAG"
 echo "EPOCH USED: $EPOCH"
 
+rm -f "evals/${TAG}_train_seed100.csv" "evals/${TAG}_test_seed100.csv"
+
 python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool train --tag ${TAG} --seed 100
 python -u evaluate.py --checkpoint "$CKPT" --episodes 100 --pool test  --tag ${TAG} --seed 100
 
