@@ -16,7 +16,7 @@ import numpy as np
 import torch
 
 from steve_cmdp import SteveCMDP
-from force_read import max_along_device, tip_force
+from force_read import max_along_device, tip_force, per_node_forces
 
 import evaluate as ev
 
@@ -104,7 +104,7 @@ def main() -> None:
 
     fields = ["episode", "step", "force_max", "force_tip", "angle_bend",
               "angle_bend_span", "angle_centerline", "dist_to_centerline",
-              "tip_index", "inserted", "arch_type"]
+              "tip_index",  "tip_node_used", "n_contact_nodes","inserted", "arch_type"]
     fh = open(args.out, "w", newline="")
     w = csv.DictWriter(fh, fieldnames=fields)
     w.writeheader()
@@ -118,6 +118,7 @@ def main() -> None:
             obs, reward, cost, term, trunc, info = env.step(action)
             sim = env._env.intervention.simulation
             row = geometry(sim, centerline)
+            pnf = per_node_forces(sim)
             row.update({
                 "episode": ep,
                 "step": t,
@@ -126,6 +127,8 @@ def main() -> None:
                 "inserted": float(
                     np.asarray(env._env.intervention.device_lengths_inserted).max()),
                 "arch_type": str(env._arch_type),
+                "tip_node_used": max(pnf.keys()) if pnf else -1,
+                "n_contact_nodes": len(pnf),
             })
             w.writerow(row)
             if bool(term) or bool(trunc):
