@@ -114,7 +114,7 @@ def main() -> None:
         centerline = np.asarray(
             env._env.intervention.vessel_tree.centerline_coordinates, dtype=np.float64)
         for t in range(env.max_episode_steps):
-            action = scale_action(ev.deterministic_action(actor, obs))
+            action = scale_action(ev.policy_action(actor, obs, deterministic=True))
             obs, reward, cost, term, trunc, info = env.step(action)
             sim = env._env.intervention.simulation
             row = geometry(sim, centerline)
