@@ -26,6 +26,12 @@ if [ ! -d "$RUNDIR" ]; then
   exit 1
 fi
 
+if [ -z "$EPOCH_OVERRIDE" ] && [ -z "$(find "$RUNDIR" -name 'epoch-50.pt' -print -quit)" ]; then
+  echo "no epoch-50.pt under $RUNDIR, run is not finished"
+  echo "set EPOCH_OVERRIDE to evaluate an earlier epoch on purpose"
+  exit 1
+fi
+
 # Highest epoch present rather than a hardcoded epoch-50, because a timed out
 # run stops short. The epoch used is printed and must match across every
 # condition being compared, otherwise the comparison has a hidden variable.
