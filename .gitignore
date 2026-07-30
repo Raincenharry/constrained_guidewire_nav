@@ -14,3 +14,6 @@ ckpt/
 tip_probe_s*.csv
 figures/
 *.pt
+figs/
+GIT_HASH.txt
+*:Zone.Identifier
