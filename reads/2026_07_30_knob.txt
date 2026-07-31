@@ -1,0 +1,86 @@
+=== 1. leave one out, interior points separated from extrapolation ===
+  the earlier version mixed the two and the endpoints dominated.
+
+  --- R4, pool train ---
+  w            realised    predicted    rel err           kind
+  0.0003          50.88       234.70       3.61  extrapolation
+  0.0010          17.55        28.69       0.63       interior
+  0.0030          22.12         5.68       0.74       interior
+  0.0100           7.41         1.12       0.85       interior
+  0.0300           0.14         4.96      34.30  extrapolation
+  mean interior error 0.74
+  mean extrapolation error 18.96
+
+  --- SACPID identity, pool train ---
+  d            realised      ratio    rel err
+  20               8.38       0.42       0.58
+  30              12.68       0.42       0.58
+  150             71.42       0.48       0.52
+  mean identity error 0.56
+
+  --- R4, pool test ---
+  w            realised    predicted    rel err           kind
+  0.0003          69.47       560.90       7.07  extrapolation
+  0.0010          40.45        41.02       0.01       interior
+  0.0030          35.34         9.07       0.74       interior
+  0.0100          10.11         1.83       0.82       interior
+  0.0300           0.21         7.36      33.82  extrapolation
+  mean interior error 0.53
+  mean extrapolation error 20.45
+
+  --- SACPID identity, pool test ---
+  d            realised      ratio    rel err
+  20              15.89       0.79       0.21
+  30              25.44       0.85       0.15
+  150             68.64       0.46       0.54
+  mean identity error 0.30
+
+=== 2. the practical question: hit a target cost on unseen anatomy ===
+  R4 route: sweep on train, pick the w whose train cost equals the target,
+  deploy, observe the test cost. SACPID route: set d equal to the target,
+  deploy, no calibration runs at all.
+
+  --- R4, target taken as its own train cost ---
+  w                    target   achieved    rel err       over
+  0.0003                50.88      69.47       0.37        yes
+  0.0010                17.55      40.45       1.30        yes
+  0.0030                22.12      35.34       0.60        yes
+  0.0100                 7.41      10.11       0.36        yes
+  0.0300                 0.14       0.21       0.51        yes
+  mean transfer error 0.63, over target in 5 of 5
+
+  --- SACPID, target is d, zero calibration runs ---
+  d                    target   achieved    rel err       over
+  20                    20.00      15.89       0.21         no
+  30                    30.00      25.44       0.15         no
+  150                  150.00      68.64       0.54         no
+  mean error 0.30, over budget in 0 of 3
+
+  runs required: R4 needs the whole sweep before the first deployment,
+  SACPID needs none. count the sweep runs from the seed table.
+
+=== 3. cross pool transfer of the knob ===
+  cond                        cost_tr    cost_te      ratio     family
+  r4tip_w0.03                    0.14       0.21       1.51         r4
+  r4tip_w0.01                    7.41      10.11       1.36         r4
+  sacpid_tip_w20_d20             8.38      15.89       1.90     sacpid
+  sacpid_tip_w20_d30            12.68      25.44       2.01     sacpid
+  r4tip_w0.001                  17.55      40.45       2.30         r4
+  r4tip_w0.003                  22.12      35.34       1.60         r4
+  sacpid_tip_ki8_d20            28.07      17.63       0.63        ref
+  r4tip_w0.0003                 50.88      69.47       1.37         r4
+  r1_baseline                   59.52      82.09       1.38        ref
+  sacpid_tip_w20_d150           71.42      68.64       0.96     sacpid
+
+  sacpid transfer ratio: mean 1.62, sd 0.47, range 0.96 to 2.01
+
+  r4 transfer ratio: mean 1.63, sd 0.35, range 1.36 to 2.30
+
+  a tighter spread means the knob transfers more predictably.
+
+=== 4. monotonicity of the knob ===
+  SACPID         pool train  d ascending -> cost [ 8.38 12.68 71.42], monotone: True
+  R4             pool train  w ascending -> cost [50.88 17.55 22.12  7.41  0.14], monotone: False
+  SACPID         pool test   d ascending -> cost [15.89 25.44 68.64], monotone: True
+  R4             pool test   w ascending -> cost [69.47 40.45 35.34 10.11  0.21], monotone: False
+

@@ -1,0 +1,290 @@
+############ pool train ############
+=== 1. cost signal audit, pool train ===
+  shadow_tip is the constrained quantity in newton steps.
+  tip_steps_over_threshold is a step count and is what every earlier table used.
+
+cond                           n    haveC   cost_mn   cost_md  cost_p95  proxy_mn      rho
+r1_baseline                  500      500     59.52     18.56    268.50     46.05    0.900
+r4_w0.0003                   300        0       n/a       n/a       n/a       nan      n/a
+r4tip_w0.0003                200      200     50.88      8.82    278.91     32.88    0.913
+r4tip_w0.001                 400      400     17.55      1.88     83.14     14.58    0.938
+r4tip_w0.003                 200      200     22.12      1.54     98.04     17.84    0.955
+r4tip_w0.01                  200      200      7.41      0.42      9.95      5.74    0.957
+r4tip_w0.03                  200      200      0.14      0.00      1.08      0.20    0.998
+sacpid_tip_ki8_d20           100      100     28.07      0.00    225.54     25.96    0.995
+sacpid_tip_w20_d150          300      300     71.42     20.70    322.13     49.18    0.925
+sacpid_tip_w20_d20           200      200      8.38      1.03     22.96      8.93    0.960
+sacpid_tip_w20_d30           400      400     12.68      0.36     42.54      8.91    0.975
+
+  does each constrained arm meet its budget at evaluation:
+  cond                            d  cost_mean      ratio  frac_over   cost_med
+  sacpid_tip_w20_d20             20       8.38       0.42      0.060       1.03
+  sacpid_tip_w20_d30             30      12.68       0.42      0.062       0.36
+  sacpid_tip_w20_d150           150      71.42       0.48      0.160      20.70
+  sacpid_tip_ki8_d20             20      28.07       1.40      0.140       0.00
+
+  a ratio below 1.0 means the budget is met on average.
+  compare against the unconstrained reference:
+  r1_baseline                  none      59.52
+
+=== 2. frontier on the ACTUAL cost, pool train ===
+cond                       nanat      prog      cost   cost_per_mm cost_per_prog
+r1_baseline                  100     0.799     59.52        0.2603         74.50
+r4tip_w0.0003                100     0.745     50.88        0.2375         68.26
+r4tip_w0.001                 100     0.747     17.55        0.0858         23.49
+r4tip_w0.003                 100     0.686     22.12        0.1175         32.24
+r4tip_w0.01                  100     0.623      7.41        0.0442         11.89
+r4tip_w0.03                  100     0.164      0.14        0.0031          0.86
+sacpid_tip_ki8_d20           100     0.146     28.07        0.7536        192.67
+sacpid_tip_w20_d150          100     0.754     71.42        0.3302         94.66
+sacpid_tip_w20_d20           100     0.475      8.38        0.0668         17.64
+sacpid_tip_w20_d30           100     0.334     12.68        0.1407         37.99
+
+  paired against r1_baseline:
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.054 [-0.078 -0.031]   -8.64 [ -24.87    9.49]
+  r4tip_w0.001                100 -0.052 [-0.073 -0.031]  -41.97 [ -51.71  -32.41]
+  r4tip_w0.003                100 -0.113 [-0.142 -0.085]  -37.40 [ -50.44  -23.00]
+  r4tip_w0.01                 100 -0.176 [-0.197 -0.153]  -52.11 [ -62.98  -41.78]
+  r4tip_w0.03                 100 -0.635 [-0.670 -0.600]  -59.38 [ -68.68  -50.23]
+  sacpid_tip_ki8_d20          100 -0.653 [-0.699 -0.606]  -31.45 [ -47.95  -13.64]
+  sacpid_tip_w20_d150         100 -0.044 [-0.065 -0.025]   11.90 [  -1.69   26.41]
+  sacpid_tip_w20_d20          100 -0.324 [-0.364 -0.285]  -51.14 [ -61.03  -40.88]
+  sacpid_tip_w20_d30          100 -0.465 [-0.500 -0.430]  -46.84 [ -58.71  -35.05]
+
+=== 3. efficiency, cost removed per unit of progress given up, pool train ===
+  higher is better. this is the single number the whole comparison reduces to.
+
+  cond                      npair          cost per prog 95pct     d prog
+  r4tip_w0.0003               100      161.4 [  -203.1    490.7]      0.054
+  r4tip_w0.001                100      813.4 [   546.9   1361.7]      0.052
+  r4tip_w0.003                100      331.4 [   208.4    478.7]      0.113
+  r4tip_w0.01                 100      296.7 [   241.7    352.5]      0.176
+  r4tip_w0.03                 100       93.5 [    79.7    107.7]      0.635
+  sacpid_tip_ki8_d20          100       48.1 [    19.5     73.5]      0.653
+  sacpid_tip_w20_d150         100     -267.6 [  -840.1     42.4]      0.044
+  sacpid_tip_w20_d20          100      157.9 [   126.5    191.3]      0.324
+  sacpid_tip_w20_d30          100      100.7 [    77.5    122.5]      0.465
+
+=== 4. head to head on the actual cost, fixed solvable set, pool train ===
+  fixed set 19 anatomies
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30 over 19 anatomies
+    d insertion mm      56.53 [   27.78    91.58]
+    d cost N.steps     -20.55 [  -56.33    11.51]
+    d progress           0.29 [    0.21     0.38]
+    d success           -0.05 [   -0.18     0.07]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20 over 19 anatomies
+    d insertion mm      60.32 [   27.61    94.24]
+    d cost N.steps      55.04 [    9.84   102.70]
+    d progress           0.21 [    0.08     0.34]
+    d success            0.18 [    0.00     0.39]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20 over 19 anatomies
+    d insertion mm      40.43 [   18.08    64.15]
+    d cost N.steps      14.55 [  -14.10    39.98]
+    d progress           0.16 [    0.06     0.25]
+    d success            0.11 [   -0.01     0.22]
+
+=== 5. tail against mean, does the Lagrangian control peaks, pool train ===
+  a penalty on a sum should cut the mean. a budget on a sum might still
+  differ in how it treats the tail. matched on progress so reach is fixed.
+
+  prog in [0.60, 0.80), 820 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 172     30.25     0.472      3.94      3.65      14.1
+  r4tip_w0.0003                75     18.75     0.286      3.38      3.37       8.4
+  r4tip_w0.001                175      6.29     0.119      2.21      3.27       7.7
+  r4tip_w0.003                 64      5.37     0.131      2.03      2.92       5.4
+  r4tip_w0.01                  75      2.19     0.075      2.36      2.33       6.3
+  sacpid_tip_w20_d150          98     71.17     0.757      6.04      3.83      12.1
+  sacpid_tip_w20_d20           55      4.92     0.111      2.76      3.70      10.7
+  sacpid_tip_w20_d30           42     12.39     0.178      2.15      2.15       3.6
+
+  prog in [0.80, 0.95), 563 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 154     56.69     0.747      6.65      4.06     123.5
+  r4tip_w0.0003                44     42.88     0.557     12.24      3.89      27.0
+  r4tip_w0.001                131     13.71     0.218      3.11      3.93      99.7
+  r4tip_w0.003                 41     26.96     0.467      3.33      3.86      19.3
+  r4tip_w0.01                  22      9.15     0.175      2.15      3.23      17.7
+  sacpid_tip_w20_d150          66     51.13     0.670      5.02      4.09      23.3
+  sacpid_tip_w20_d20           38      9.66     0.274      2.77      3.76      20.0
+  sacpid_tip_w20_d30           23     29.76     0.411      4.58      3.60      16.2
+
+  prog in [0.95, 1.01), 351 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 118    132.24     1.419      8.75      4.04    2006.3
+  r4tip_w0.0003                39    163.08     1.940      8.94      4.11    1278.5
+  r4tip_w0.001                 40     92.43     1.096      5.07      3.92     699.6
+  r4tip_w0.003                 22    132.13     1.453      9.17      3.97    2700.1
+  sacpid_tip_w20_d150          69    143.67     1.477      9.04      4.08    1555.7
+  sacpid_tip_w20_d30           16    137.84     1.597      9.87      4.06     772.8
+
+=== 6. the jam, frac above 1.15 and failed, pool train ===
+  jam episodes overall: 163 of 3000
+  group                  n      cost     f_max   clamped      prog
+  jam                  163    211.32    3085.8     0.871     1.000
+  not jam             2837     20.61      46.7     0.004     0.572
+
+  jam rate by condition, paired against r1_baseline:
+  cond                           n  jam_rate              d jam 95pct
+  r1_baseline                  500     0.126                reference
+  r4_w0.0003                   300     0.050  -0.076 [-0.108 -0.044]
+  r4tip_w0.0003                200     0.110  -0.016 [-0.057  0.026]
+  r4tip_w0.001                 400     0.022  -0.103 [-0.132 -0.076]
+  r4tip_w0.003                 200     0.045  -0.081 [-0.116 -0.043]
+  r4tip_w0.01                  200     0.015  -0.111 [-0.142 -0.080]
+  r4tip_w0.03                  200     0.000  -0.126 [-0.156 -0.098]
+  sacpid_tip_ki8_d20           100     0.000  -0.126 [-0.154 -0.098]
+  sacpid_tip_w20_d150          300     0.113  -0.013 [-0.052  0.027]
+  sacpid_tip_w20_d20           200     0.005  -0.121 [-0.149 -0.094]
+  sacpid_tip_w20_d30           400     0.018  -0.108 [-0.138 -0.080]
+
+############ pool test ############
+=== 1. cost signal audit, pool test ===
+  shadow_tip is the constrained quantity in newton steps.
+  tip_steps_over_threshold is a step count and is what every earlier table used.
+
+cond                           n    haveC   cost_mn   cost_md  cost_p95  proxy_mn      rho
+r1_baseline                  500      500     82.09     20.82    428.00     43.97    0.914
+r4_w0.0003                   300        0       n/a       n/a       n/a       nan      n/a
+r4tip_w0.0003                200      200     69.47      9.80    462.97     39.89    0.919
+r4tip_w0.001                 400      400     40.45      3.33    250.03     24.00    0.962
+r4tip_w0.003                 200      200     35.34      2.20    270.94     18.05    0.969
+r4tip_w0.01                  200      200     10.11      0.52     37.38      8.14    0.973
+r4tip_w0.03                  200      200      0.21      0.00      1.45      0.27    0.995
+sacpid_tip_ki8_d20           100      100     17.63      0.00     72.13     10.79    0.995
+sacpid_tip_w20_d150          300      300     68.64     16.25    371.82     41.69    0.931
+sacpid_tip_w20_d20           200      200     15.89      0.70     71.49     15.54    0.979
+sacpid_tip_w20_d30           400      400     25.44      0.54    161.44     15.20    0.985
+
+  does each constrained arm meet its budget at evaluation:
+  cond                            d  cost_mean      ratio  frac_over   cost_med
+  sacpid_tip_w20_d20             20      15.89       0.79      0.110       0.70
+  sacpid_tip_w20_d30             30      25.44       0.85      0.115       0.54
+  sacpid_tip_w20_d150           150      68.64       0.46      0.130      16.25
+  sacpid_tip_ki8_d20             20      17.63       0.88      0.060       0.00
+
+  a ratio below 1.0 means the budget is met on average.
+  compare against the unconstrained reference:
+  r1_baseline                  none      82.09
+
+=== 2. frontier on the ACTUAL cost, pool test ===
+cond                       nanat      prog      cost   cost_per_mm cost_per_prog
+r1_baseline                  100     0.832     82.09        0.3408         98.65
+r4tip_w0.0003                100     0.754     69.47        0.3140         92.09
+r4tip_w0.001                 100     0.755     40.45        0.1915         53.55
+r4tip_w0.003                 100     0.721     35.34        0.1770         49.04
+r4tip_w0.01                  100     0.607     10.11        0.0631         16.65
+r4tip_w0.03                  100     0.137      0.21        0.0056          1.54
+sacpid_tip_ki8_d20           100     0.139     17.63        0.5284        127.14
+sacpid_tip_w20_d150          100     0.772     68.64        0.3122         88.87
+sacpid_tip_w20_d20           100     0.462     15.89        0.1321         34.37
+sacpid_tip_w20_d30           100     0.344     25.44        0.2825         74.01
+
+  paired against r1_baseline:
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.078 [-0.107 -0.051]  -12.63 [ -35.92   11.67]
+  r4tip_w0.001                100 -0.077 [-0.096 -0.058]  -41.64 [ -60.44  -22.71]
+  r4tip_w0.003                100 -0.111 [-0.139 -0.084]  -46.75 [ -66.79  -27.11]
+  r4tip_w0.01                 100 -0.225 [-0.258 -0.193]  -71.98 [ -90.48  -54.38]
+  r4tip_w0.03                 100 -0.695 [-0.728 -0.662]  -81.88 [ -99.55  -65.26]
+  sacpid_tip_ki8_d20          100 -0.693 [-0.734 -0.648]  -64.46 [ -87.59  -38.02]
+  sacpid_tip_w20_d150         100 -0.060 [-0.083 -0.037]  -13.46 [ -34.31    7.98]
+  sacpid_tip_w20_d20          100 -0.370 [-0.413 -0.327]  -66.20 [ -83.53  -49.44]
+  sacpid_tip_w20_d30          100 -0.488 [-0.524 -0.453]  -56.65 [ -77.45  -37.34]
+
+=== 3. efficiency, cost removed per unit of progress given up, pool test ===
+  higher is better. this is the single number the whole comparison reduces to.
+
+  cond                      npair          cost per prog 95pct     d prog
+  r4tip_w0.0003               100      162.3 [  -171.4    491.2]      0.078
+  r4tip_w0.001                100      542.0 [   305.6    807.6]      0.077
+  r4tip_w0.003                100      419.6 [   262.9    588.4]      0.111
+  r4tip_w0.01                 100      320.1 [   254.0    388.7]      0.225
+  r4tip_w0.03                 100      117.8 [    92.8    144.4]      0.695
+  sacpid_tip_ki8_d20          100       93.0 [    55.4    126.4]      0.693
+  sacpid_tip_w20_d150         100      225.2 [  -174.8    558.2]      0.060
+  sacpid_tip_w20_d20          100      179.0 [   137.3    222.9]      0.370
+  sacpid_tip_w20_d30          100      116.0 [    77.4    153.6]      0.488
+
+=== 4. head to head on the actual cost, fixed solvable set, pool test ===
+  fixed set 26 anatomies
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30 over 26 anatomies
+    d insertion mm      88.16 [   67.17   111.17]
+    d cost N.steps     -21.06 [  -46.11     2.58]
+    d progress           0.37 [    0.30     0.44]
+    d success            0.00 [   -0.10     0.12]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20 over 26 anatomies
+    d insertion mm      63.62 [   41.11    87.51]
+    d cost N.steps      35.59 [    3.89    72.58]
+    d progress           0.23 [    0.14     0.32]
+    d success            0.35 [    0.19     0.50]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20 over 26 anatomies
+    d insertion mm      59.54 [   37.84    82.62]
+    d cost N.steps      42.40 [   18.25    69.84]
+    d progress           0.20 [    0.11     0.28]
+    d success            0.16 [    0.10     0.23]
+
+=== 5. tail against mean, does the Lagrangian control peaks, pool test ===
+  a penalty on a sum should cut the mean. a budget on a sum might still
+  differ in how it treats the tail. matched on progress so reach is fixed.
+
+  prog in [0.60, 0.80), 645 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 144     65.84     0.713      4.56      3.30     107.0
+  r4tip_w0.0003                57     27.15     0.420      3.64      3.49     139.6
+  r4tip_w0.001                122     22.62     0.252      2.94      3.25      30.0
+  r4tip_w0.003                 60     12.59     0.214      3.06      2.76      16.2
+  r4tip_w0.01                  50      3.52     0.090      2.15      2.06       5.5
+  sacpid_tip_w20_d150          71     57.55     0.647      4.50      3.42     100.8
+  sacpid_tip_w20_d20           41      8.14     0.165      3.52      3.45      12.9
+  sacpid_tip_w20_d30           54     43.13     0.412      3.35      2.67     154.1
+
+  prog in [0.80, 0.95), 465 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 117     50.95     0.656      5.41      3.83     240.8
+  r4tip_w0.0003                34     28.39     0.483      4.83      3.64     116.6
+  r4tip_w0.001                102     25.01     0.358      3.45      3.66      76.5
+  r4tip_w0.003                 29     26.88     0.445      4.29      3.30      23.5
+  r4tip_w0.01                  28     20.04     0.287      3.32      2.97       9.1
+  sacpid_tip_w20_d150          60     62.48     0.929     10.87      3.95     270.4
+  sacpid_tip_w20_d20           43     31.22     0.459      3.48      3.47      27.5
+  sacpid_tip_w20_d30           25     49.99     0.479      3.41      3.40     366.2
+
+  prog in [0.95, 1.01), 607 episodes
+  cond                          n      cost  tip_mean   tip_max   exc_max     f_max
+  r1_baseline                 191    130.78     1.337      9.06      3.91    1908.3
+  r4tip_w0.0003                61    176.21     2.065      9.39      3.84    1390.6
+  r4tip_w0.001                 95    105.99     1.083      6.99      3.92    1793.1
+  r4tip_w0.003                 43    126.90     1.215      7.82      3.66    1507.2
+  r4tip_w0.01                  22     50.27     0.533      5.96      3.77    1401.3
+  sacpid_tip_w20_d150          99    109.18     1.366      8.06      3.78    1843.6
+  sacpid_tip_w20_d20           18     62.66     0.773      8.42      3.88    1791.7
+  sacpid_tip_w20_d30           20    174.68     1.601      7.46      3.59    1309.3
+
+=== 6. the jam, frac above 1.15 and failed, pool test ===
+  jam episodes overall: 275 of 3000
+  group                  n      cost     f_max   clamped      prog
+  jam                  275    194.93    2934.9     0.876     1.000
+  not jam             2725     27.44     129.3     0.011     0.565
+
+  jam rate by condition, paired against r1_baseline:
+  cond                           n  jam_rate              d jam 95pct
+  r1_baseline                  500     0.184                reference
+  r4_w0.0003                   300     0.083  -0.101 [-0.149 -0.051]
+  r4tip_w0.0003                200     0.185   0.001 [-0.054  0.054]
+  r4tip_w0.001                 400     0.102  -0.082 [-0.117 -0.048]
+  r4tip_w0.003                 200     0.105  -0.079 [-0.128 -0.027]
+  r4tip_w0.01                  200     0.035  -0.149 [-0.199 -0.101]
+  r4tip_w0.03                  200     0.000  -0.184 [-0.226 -0.142]
+  sacpid_tip_ki8_d20           100     0.000  -0.184 [-0.228 -0.144]
+  sacpid_tip_w20_d150          300     0.137  -0.047 [-0.095 -0.000]
+  sacpid_tip_w20_d20           200     0.030  -0.154 [-0.194 -0.116]
+  sacpid_tip_w20_d30           400     0.013  -0.171 [-0.214 -0.130]
+

@@ -1,0 +1,314 @@
+############ pool train ############
+=== A. solvable set defined WITHOUT the conditions under test, pool train ===
+  defined from: r1_baseline, sacpid_tip_w20_d150
+  fixed set 19 anatomies, old all condition set 20 anatomies
+  in old but not fixed: 1   in fixed but not old: 0
+
+  path length by membership of the fixed set:
+          count   mean   std    min    25%    50%    75%    max
+in_fixed                                                       
+False      81.0  284.3  31.1  215.8  266.4  283.4  307.0  342.7
+True       19.0  216.2  18.0  188.6  202.5  214.6  225.0  254.1
+
+=== B. success on the FIXED solvable set, pool train ===
+  19 anatomies, 570 episodes
+cond                      seeds   succ_fix   succ_all        ins       prog        tip
+r1_baseline                   5      0.547      0.104      213.2      0.921      40.46
+r4_w0.0003                    3      0.351      0.067      168.1      0.725        nan
+r4tip_w0.0003                 2      0.342      0.065      195.4      0.819      42.47
+r4tip_w0.001                  4      0.263      0.050      185.8      0.821      23.68
+r4tip_w0.003                  2      0.342      0.070      205.7      0.876      49.74
+r4tip_w0.01                   2      0.079      0.015      180.1      0.804      12.21
+r4tip_w0.03                   2      0.000      0.000       39.6      0.187       0.26
+sacpid_tip_ki8_d20            1      0.000      0.000       49.5      0.223      52.11
+sacpid_tip_w20_d150           3      0.614      0.117      238.1      0.950      42.88
+sacpid_tip_w20_d20            2      0.158      0.030      145.4      0.665      22.32
+sacpid_tip_w20_d30            4      0.132      0.025      123.6      0.515      16.57
+
+=== C. is success just reaching far enough, episode level, pool train ===
+  reference arms only, 800 episodes
+
+    t_frac   n_pred     prec   recall      acc     base
+      0.80      407    0.214    1.000    0.600    0.891
+      0.85      323    0.263    0.977    0.700    0.891
+      0.90      248    0.278    0.793    0.754    0.891
+      0.95      187    0.278    0.598    0.787    0.891
+      0.98      159    0.245    0.448    0.790    0.891
+      1.00      144    0.215    0.356    0.789    0.891
+      1.02      135    0.185    0.287    0.785    0.891
+      1.05      123    0.146    0.207    0.782    0.891
+
+  the residual: episodes that reached the path length but failed anyway
+    reached and failed     n= 113  frac med 1.38  clamped 0.805  buckle 0.814  tip  83.27
+    reached and succeeded  n=  31  frac med 1.06  clamped 0.032  buckle 0.032  tip  11.87
+
+=== D. normalised progress as the headline metric, pool train ===
+  prog = min(insertion / path length, 1), so anatomy difficulty divides out.
+
+cond                        nanat               prog 95pct   tip_per_mm       succ
+r1_baseline                   100   0.799 [ 0.773  0.823]       0.2014      0.104
+r4_w0.0003                    100   0.580 [ 0.551  0.609]       0.0000      0.067
+r4tip_w0.0003                 100   0.745 [ 0.714  0.776]       0.1534      0.065
+r4tip_w0.001                  100   0.747 [ 0.727  0.768]       0.0713      0.050
+r4tip_w0.003                  100   0.686 [ 0.655  0.718]       0.0948      0.070
+r4tip_w0.01                   100   0.623 [ 0.597  0.649]       0.0342      0.015
+r4tip_w0.03                   100   0.164 [ 0.135  0.191]       0.0044      0.000
+sacpid_tip_ki8_d20            100   0.146 [ 0.112  0.181]       0.6969      0.000
+sacpid_tip_w20_d150           100   0.754 [ 0.725  0.784]       0.2274      0.117
+sacpid_tip_w20_d20            100   0.475 [ 0.437  0.515]       0.0711      0.030
+sacpid_tip_w20_d30            100   0.334 [ 0.305  0.366]       0.0989      0.025
+
+  paired against r1_baseline on progress:
+  cond                      npair             d prog 95pct              d tip 95pct
+  r4_w0.0003                  100  -0.219 [-0.235 -0.202]      nan [    nan     nan]
+  r4tip_w0.0003               100  -0.054 [-0.079 -0.030]   -13.18 [ -19.88   -5.77]
+  r4tip_w0.001                100  -0.052 [-0.072 -0.030]   -31.48 [ -36.57  -26.37]
+  r4tip_w0.003                100  -0.113 [-0.141 -0.085]   -28.21 [ -35.24  -21.03]
+  r4tip_w0.01                 100  -0.176 [-0.198 -0.154]   -40.31 [ -45.94  -34.71]
+  r4tip_w0.03                 100  -0.635 [-0.672 -0.599]   -45.85 [ -50.70  -41.08]
+  sacpid_tip_ki8_d20          100  -0.653 [-0.699 -0.602]   -20.09 [ -32.65   -7.02]
+  sacpid_tip_w20_d150         100  -0.044 [-0.064 -0.024]     3.12 [  -2.83    9.28]
+  sacpid_tip_w20_d20          100  -0.324 [-0.363 -0.283]   -37.13 [ -42.47  -31.87]
+  sacpid_tip_w20_d30          100  -0.465 [-0.500 -0.430]   -37.14 [ -43.01  -31.18]
+
+=== E. head to head on the FIXED set, per seed pair, pool train ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30, pooled over 19 anatomies
+    d insertion     56.5 mm [   27.9    91.7]
+    d tip cost     -4.36    [ -17.20    9.21]
+    d success     -0.053    [ -0.184   0.066]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0       70.5      10.47      0.000
+         0      1      184.0      17.53      0.105
+         0      2        9.0     -10.16     -0.053
+         0      3       58.3       0.53     -0.158
+         1      0       22.6      -7.42     -0.053
+         1      1      136.1      -0.37      0.053
+         1      2      -38.8     -28.05     -0.105
+         1      3       10.5     -17.37     -0.211
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20, pooled over 19 anatomies
+    d insertion     60.3 mm [   27.6    95.1]
+    d tip cost     27.42    [   7.95   46.53]
+    d success      0.184    [  0.000   0.368]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0       68.5      43.89      0.053
+         0      1       22.0      13.89      0.053
+         1      0       98.7      40.95      0.316
+         1      1       52.1      10.95      0.316
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20, pooled over 19 anatomies
+    d insertion     40.4 mm [   19.0    64.1]
+    d tip cost      1.37    [ -10.33   13.30]
+    d success      0.105    [ -0.013   0.224]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0       90.3      14.74      0.158
+         0      1       43.7     -15.26      0.158
+         1      0       70.5      21.47      0.421
+         1      1       23.9      -8.53      0.421
+         3      0       73.9      35.16     -0.053
+         3      1       27.3       5.16     -0.053
+         4      0       20.2      -5.89     -0.105
+         4      1      -26.4     -35.89     -0.105
+
+=== F. cost at matched progress rather than matched insertion, pool train ===
+  bands on prog, so anatomy difficulty is held fixed as well as reach.
+
+  prog in [0.60, 0.80), 820 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  172     47.03    127.70     0.000
+  r4_w0.0003                    53       nan    117.15     0.000
+  r4tip_w0.0003                 75     20.79    118.05     0.000
+  r4tip_w0.001                 175      8.73    102.02     0.000
+  r4tip_w0.003                  64     10.05    108.00     0.000
+  r4tip_w0.01                   75      4.13     80.77     0.000
+  sacpid_tip_w20_d150           98     57.06    125.93     0.000
+  sacpid_tip_w20_d20            55      5.89    118.64     0.000
+  sacpid_tip_w20_d30            42     10.50     62.71     0.000
+
+  prog in [0.80, 0.95), 563 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  154     46.16    116.82     0.162
+  r4_w0.0003                    42       nan    106.02     0.238
+  r4tip_w0.0003                 44     42.66    121.18     0.091
+  r4tip_w0.001                 131     17.34    118.19     0.076
+  r4tip_w0.003                  41     36.54    106.02     0.146
+  r4tip_w0.01                   22     14.32    112.86     0.045
+  sacpid_tip_w20_d150           66     50.36    113.59     0.152
+  sacpid_tip_w20_d20            38     21.82    101.63     0.158
+  sacpid_tip_w20_d30            23     15.65     70.65     0.304
+
+  prog in [0.95, 1.01), 351 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  118     63.51    130.01     0.229
+  r4_w0.0003                    27       nan    108.22     0.370
+  r4tip_w0.0003                 39     65.10    131.00     0.231
+  r4tip_w0.001                  40     38.48    113.80     0.250
+  r4tip_w0.003                  22     61.27    108.82     0.364
+  sacpid_tip_w20_d150           69     62.62    106.93     0.362
+  sacpid_tip_w20_d30            16     60.06    130.50     0.188
+
+############ pool test ############
+=== A. solvable set defined WITHOUT the conditions under test, pool test ===
+  defined from: r1_baseline, sacpid_tip_w20_d150
+  fixed set 26 anatomies, old all condition set 28 anatomies
+  in old but not fixed: 2   in fixed but not old: 0
+
+  path length by membership of the fixed set:
+          count   mean   std    min    25%    50%    75%    max
+in_fixed                                                       
+False      74.0  284.3  34.1  221.1  262.4  283.9  310.0  350.4
+True       26.0  217.5  24.4  176.1  200.3  214.1  233.4  264.0
+
+=== B. success on the FIXED solvable set, pool test ===
+  26 anatomies, 780 episodes
+cond                      seeds   succ_fix   succ_all        ins       prog        tip
+r1_baseline                   5      0.538      0.140      216.4      0.930      31.34
+r4_w0.0003                    3      0.385      0.100      177.6      0.732        nan
+r4tip_w0.0003                 2      0.423      0.110      207.6      0.842      44.75
+r4tip_w0.001                  4      0.221      0.062      199.7      0.854      34.20
+r4tip_w0.003                  2      0.404      0.105      203.8      0.886      25.88
+r4tip_w0.01                   2      0.115      0.030      190.4      0.828      20.08
+r4tip_w0.03                   2      0.000      0.000       21.8      0.101       0.29
+sacpid_tip_ki8_d20            1      0.000      0.000       51.9      0.232      22.62
+sacpid_tip_w20_d150           3      0.731      0.190      222.8      0.956      29.32
+sacpid_tip_w20_d20            2      0.058      0.015      140.2      0.657      26.87
+sacpid_tip_w20_d30            4      0.115      0.030      102.3      0.458      22.68
+
+=== C. is success just reaching far enough, episode level, pool test ===
+  reference arms only, 800 episodes
+
+    t_frac   n_pred     prec   recall      acc     base
+      0.80      467    0.272    1.000    0.575    0.841
+      0.85      410    0.307    0.992    0.644    0.841
+      0.90      338    0.334    0.890    0.701    0.841
+      0.95      290    0.324    0.740    0.714    0.841
+      0.98      256    0.285    0.575    0.704    0.841
+      1.00      238    0.256    0.480    0.696    0.841
+      1.02      214    0.192    0.323    0.676    0.841
+      1.05      191    0.126    0.189    0.662    0.841
+
+  the residual: episodes that reached the path length but failed anyway
+    reached and failed     n= 177  frac med 1.31  clamped 0.757  buckle 0.847  tip  71.71
+    reached and succeeded  n=  61  frac med 1.04  clamped 0.016  buckle 0.049  tip   9.48
+
+=== D. normalised progress as the headline metric, pool test ===
+  prog = min(insertion / path length, 1), so anatomy difficulty divides out.
+
+cond                        nanat               prog 95pct   tip_per_mm       succ
+r1_baseline                   100   0.832 [ 0.810  0.854]       0.1825      0.140
+r4_w0.0003                    100   0.592 [ 0.562  0.623]       0.0000      0.100
+r4tip_w0.0003                 100   0.754 [ 0.722  0.786]       0.1803      0.110
+r4tip_w0.001                  100   0.755 [ 0.731  0.779]       0.1136      0.062
+r4tip_w0.003                  100   0.721 [ 0.688  0.754]       0.0904      0.105
+r4tip_w0.01                   100   0.607 [ 0.569  0.646]       0.0508      0.030
+r4tip_w0.03                   100   0.137 [ 0.109  0.164]       0.0072      0.000
+sacpid_tip_ki8_d20            100   0.139 [ 0.102  0.180]       0.3233      0.000
+sacpid_tip_w20_d150           100   0.772 [ 0.741  0.804]       0.1896      0.190
+sacpid_tip_w20_d20            100   0.462 [ 0.417  0.507]       0.1292      0.015
+sacpid_tip_w20_d30            100   0.344 [ 0.310  0.379]       0.1687      0.030
+
+  paired against r1_baseline on progress:
+  cond                      npair             d prog 95pct              d tip 95pct
+  r4_w0.0003                  100  -0.240 [-0.263 -0.217]      nan [    nan     nan]
+  r4tip_w0.0003               100  -0.078 [-0.107 -0.050]    -4.08 [ -11.86    3.66]
+  r4tip_w0.001                100  -0.077 [-0.097 -0.058]   -19.97 [ -26.82  -12.87]
+  r4tip_w0.003                100  -0.111 [-0.139 -0.085]   -25.92 [ -32.62  -19.32]
+  r4tip_w0.01                 100  -0.225 [-0.258 -0.192]   -35.82 [ -42.54  -28.96]
+  r4tip_w0.03                 100  -0.695 [-0.728 -0.662]   -43.70 [ -49.30  -38.16]
+  sacpid_tip_ki8_d20          100  -0.693 [-0.735 -0.649]   -33.18 [ -41.39  -24.10]
+  sacpid_tip_w20_d150         100  -0.060 [-0.083 -0.037]    -2.28 [  -8.34    4.01]
+  sacpid_tip_w20_d20          100  -0.370 [-0.413 -0.324]   -28.42 [ -35.25  -20.84]
+  sacpid_tip_w20_d30          100  -0.488 [-0.525 -0.452]   -28.77 [ -36.32  -21.14]
+
+=== E. head to head on the FIXED set, per seed pair, pool test ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30, pooled over 26 anatomies
+    d insertion     88.2 mm [   67.0   110.3]
+    d tip cost     -2.61    [ -12.96    7.80]
+    d success      0.000    [ -0.096   0.115]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0      112.9      31.88      0.154
+         0      1      203.7      24.38      0.154
+         0      2       55.7     -41.08      0.038
+         0      3       98.3      25.00     -0.192
+         1      0       53.9       6.58      0.077
+         1      1      144.7      -0.92      0.077
+         1      2       -3.2     -66.38     -0.038
+         1      3       39.3      -0.31     -0.269
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20, pooled over 26 anatomies
+    d insertion     63.6 mm [   40.9    87.7]
+    d tip cost     -0.98    [ -16.64   15.87]
+    d success      0.346    [  0.192   0.481]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0       65.7      26.46      0.038
+         0      1       71.2     -16.50      0.154
+         1      0       56.0      14.54      0.538
+         1      1       61.5     -28.42      0.654
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20, pooled over 26 anatomies
+    d insertion     59.5 mm [   37.2    82.9]
+    d tip cost      7.34    [  -3.86   18.89]
+    d success      0.163    [  0.096   0.231]
+
+    every seed pair, to check one seed is not carrying it:
+    seed_a seed_b      d_ins      d_tip     d_succ
+         0      0       81.1      16.69      0.077
+         0      1       86.6     -26.27      0.192
+         1      0       62.1      23.46      0.577
+         1      1       67.6     -19.50      0.692
+         3      0       61.0      61.62     -0.115
+         3      1       66.5      18.65      0.000
+         4      0       22.9      13.50     -0.115
+         4      1       28.4     -29.46      0.000
+
+=== F. cost at matched progress rather than matched insertion, pool test ===
+  bands on prog, so anatomy difficulty is held fixed as well as reach.
+
+  prog in [0.60, 0.80), 645 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  144     47.56    110.90     0.000
+  r4_w0.0003                    36       nan     99.72     0.000
+  r4tip_w0.0003                 57     28.98    115.86     0.000
+  r4tip_w0.001                 122     16.14    101.57     0.000
+  r4tip_w0.003                  60      9.83     82.37     0.000
+  r4tip_w0.01                   50      3.68     54.46     0.000
+  sacpid_tip_w20_d150           71     42.61    105.70     0.000
+  sacpid_tip_w20_d20            41      9.78    104.51     0.000
+  sacpid_tip_w20_d30            54     22.74     72.35     0.000
+
+  prog in [0.80, 0.95), 465 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  117     33.69    106.37     0.154
+  r4_w0.0003                    25       nan     89.48     0.280
+  r4tip_w0.0003                 34     30.06    103.24     0.176
+  r4tip_w0.001                 102     19.65    107.60     0.078
+  r4tip_w0.003                  29     28.07     85.76     0.103
+  r4tip_w0.01                   28     20.64     84.21     0.071
+  sacpid_tip_w20_d150           60     45.33    103.30     0.250
+  sacpid_tip_w20_d20            43     36.67     99.07     0.070
+  sacpid_tip_w20_d30            25     26.08     78.72     0.120
+
+  prog in [0.95, 1.01), 607 episodes
+  cond                           n       tip       dev      succ
+  r1_baseline                  191     54.21    113.24     0.272
+  r4_w0.0003                    57       nan     98.70     0.404
+  r4tip_w0.0003                 61     72.00    119.80     0.262
+  r4tip_w0.001                  95     53.36    119.29     0.179
+  r4tip_w0.003                  43     49.30     87.49     0.419
+  r4tip_w0.01                   22     30.82    106.86     0.182
+  sacpid_tip_w20_d150           99     46.52     91.45     0.424
+  sacpid_tip_w20_d20            18     35.78    126.39     0.000
+  sacpid_tip_w20_d30            20     59.65     98.30     0.450
+

@@ -1,0 +1,266 @@
+############ pool train ############
+=== A. is reach anatomy independent, pool train ===
+  if the agent adapted to the anatomy, insertion would rise with path length.
+  a slope near zero means a fixed reach regardless of what is required.
+
+cond                        nanat        rho      slope     ins_sd
+r1_baseline                   100      0.272      0.240       42.2
+r4_w0.0003                    100     -0.073     -0.066       40.5
+r4tip_w0.0003                 100     -0.014      0.097       54.3
+r4tip_w0.001                  100      0.281      0.300       31.7
+r4tip_w0.003                  100     -0.254     -0.294       45.7
+r4tip_w0.01                   100     -0.002     -0.071       23.3
+r4tip_w0.03                   100      0.240      0.306       38.3
+sacpid_tip_ki8_d20            100     -0.578     -0.492       38.6
+sacpid_tip_w20_d150           100     -0.161     -0.301       47.3
+sacpid_tip_w20_d20            100     -0.358     -0.420       36.9
+sacpid_tip_w20_d30            100     -0.275     -0.439       39.9
+
+  slope of 1.0 would mean perfect adaptation, 0.0 a fixed reach.
+
+=== B. does path length alone predict solvability, pool train ===
+  base rate solved: 0.200 over 100 anatomies
+
+  threshold on path length, predict solved if path below t:
+      t_mm  n_below   solved      acc   recall
+       180        0      nan    0.800    0.000
+       200        4    1.000    0.840    0.200
+       220       13    0.846    0.890    0.550
+       240       23    0.783    0.930    0.900
+       260       37    0.541    0.830    1.000
+       280       56    0.357    0.640    1.000
+       300       75    0.267    0.450    1.000
+       320       88    0.227    0.320    1.000
+       340       99    0.202    0.210    1.000
+
+  best single threshold 240 mm at accuracy 0.930, against 0.800 for always predicting the majority class
+
+  solve rate by path length decile:
+      n    p_med  solved
+dec                     
+0    10  202.514     1.0
+1    10  222.366     0.5
+2    10  243.893     0.4
+3    10  258.351     0.1
+4    10  272.421     0.0
+5    10  279.713     0.0
+6    10  288.779     0.0
+7    10  300.689     0.0
+8    10  314.658     0.0
+9    10  334.773     0.0
+
+=== C. does ArchType II survive matching on path length, pool train ===
+  ArchType.II path range 261.6 to 339.5, others 188.6 to 342.7
+
+  non II anatomies in the ArchType.II path range (>= 261.6 mm):
+    n = 38, solved 0, rate 0.000
+    ArchType.II: n = 25, solved 0, rate 0.000
+
+  solve rate by path bin, ArchType.II against the rest:
+                   n  solved
+bin        is2              
+(175, 200] False   4   1.000
+(200, 225] False  13   0.769
+(225, 250] False  14   0.357
+(250, 275] False  16   0.062
+           True    4   0.000
+(275, 300] False  16   0.000
+           True    8   0.000
+(300, 325] False  10   0.000
+           True    5   0.000
+(325, 350] False   2   0.000
+           True    8   0.000
+
+  mean insertion by path bin, is ArchType.II reach unusual:
+                  size   mean
+bin        is2               
+(175, 200] False     4  149.3
+(200, 225] False    13  168.2
+(225, 250] False    14  165.6
+(250, 275] False    16  153.2
+           True      4  140.2
+(275, 300] False    16  144.4
+           True      8  155.1
+(300, 325] False    10  156.5
+           True      5  150.7
+(325, 350] False     2  149.5
+           True      8  158.1
+
+=== D. overshoot, frac above 1 means the device exceeded the path, pool train ===
+  r1_baseline, 500 episodes, frac > 1.0 in 0.174 of them
+
+overshoot       n     succ   tip_cost   dev_cost     buckle    clamped
+False         413    0.097      40.95     106.30      0.015      0.007
+True           87    0.138      70.28     141.70      0.678      0.713
+
+  same split excluding clamped episodes, so it is not just the clamp:
+False         410    0.095      40.60     105.86      0.007
+True           25    0.480      33.68      86.80      0.280
+
+  overshoot rate by condition, unclamped only:
+    r1_baseline                 435    0.057
+    r4_w0.0003                  288    0.042
+    r4tip_w0.0003               182    0.066
+    r4tip_w0.001                391    0.041
+    r4tip_w0.003                290    0.038
+    r4tip_w0.01                 296    0.020
+    r4tip_w0.03                 200    0.000
+    sacpid_tip_ki8_d20          200    0.000
+    sacpid_tip_w20_d150         270    0.100
+    sacpid_tip_w20_d20          493    0.024
+    sacpid_tip_w20_d30          392    0.008
+
+=== E. is lost success fully explained by lost reach, pool train ===
+  predicted success uses each condition's own median reach and asks what
+  fraction of anatomies have a shorter path. No policy quality involved.
+
+cond                      reach_med    pred_succ       actual      ratio
+r1_baseline                   219.5        0.130        0.104       0.80
+r4_w0.0003                    159.1        0.000        0.067        n/a
+r4tip_w0.0003                 202.6        0.050        0.065       1.30
+r4tip_w0.001                  205.8        0.060        0.050       0.83
+r4tip_w0.003                  173.7        0.000        0.077        n/a
+r4tip_w0.01                   157.3        0.000        0.010        n/a
+r4tip_w0.03                     0.2        0.000        0.000        n/a
+sacpid_tip_ki8_d20             69.4        0.000        0.000        n/a
+sacpid_tip_w20_d150           208.5        0.080        0.117       1.46
+sacpid_tip_w20_d20            103.7        0.000        0.024        n/a
+sacpid_tip_w20_d30            102.7        0.000        0.025        n/a
+
+  a ratio near a shared constant means reach explains the ordering and
+  the residual is the same for everyone. A ratio that varies means some
+  conditions convert reach into success better than others.
+
+=== F. head to head at matched success and matched cost, pool train ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30, paired over 20 solvable anatomies
+    d insertion      56.1 mm [   31.1    83.0]
+    d tip cost      -4.62    [ -16.27    6.69]
+    d success      -0.075    [ -0.179   0.017]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20, paired over 20 solvable anatomies
+    d insertion      50.0 mm [   26.6    74.4]
+    d tip cost      15.59    [   1.62   28.91]
+    d success       0.263    [  0.147   0.393]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20, paired over 20 solvable anatomies
+    d insertion      43.7 mm [   23.0    65.9]
+    d tip cost      -1.67    [ -13.30    8.77]
+    d success       0.130    [  0.042   0.227]
+
+############ pool test ############
+=== A. is reach anatomy independent, pool test ===
+  if the agent adapted to the anatomy, insertion would rise with path length.
+  a slope near zero means a fixed reach regardless of what is required.
+
+cond                        nanat        rho      slope     ins_sd
+r1_baseline                   100      0.439      0.434       46.9
+r4_w0.0003                    100      0.122     -0.081       50.5
+r4tip_w0.0003                 100      0.025      0.119       63.5
+r4tip_w0.001                  100      0.202      0.199       41.2
+r4tip_w0.003                  100     -0.287     -0.340       55.8
+r4tip_w0.01                   100     -0.415     -0.362       31.1
+r4tip_w0.03                   100      0.328      0.251       37.2
+sacpid_tip_ki8_d20            100     -0.747     -0.733       47.6
+sacpid_tip_w20_d150           100     -0.088     -0.168       50.3
+sacpid_tip_w20_d20            100     -0.744     -0.906       51.5
+sacpid_tip_w20_d30            100     -0.316     -0.268       39.1
+
+  slope of 1.0 would mean perfect adaptation, 0.0 a fixed reach.
+
+=== B. does path length alone predict solvability, pool test ===
+  base rate solved: 0.280 over 100 anatomies
+
+  threshold on path length, predict solved if path below t:
+      t_mm  n_below   solved      acc   recall
+       180        1    1.000    0.730    0.036
+       200        6    1.000    0.780    0.214
+       220       15    1.000    0.870    0.536
+       240       28    0.750    0.860    0.750
+       260       43    0.628    0.830    0.964
+       280       59    0.475    0.690    1.000
+       300       75    0.373    0.530    1.000
+       320       89    0.315    0.390    1.000
+       340       95    0.295    0.330    1.000
+
+  best single threshold 220 mm at accuracy 0.870, against 0.720 for always predicting the majority class
+
+  solve rate by path length decile:
+      n    p_med  solved
+dec                     
+0    10  198.292     1.0
+1    10  219.908     0.6
+2    10  231.059     0.6
+3    10  248.966     0.5
+4    10  264.290     0.1
+5    10  273.146     0.0
+6    10  285.221     0.0
+7    10  300.841     0.0
+8    10  312.476     0.0
+9    10  337.406     0.0
+
+=== C. does ArchType II survive matching on path length, pool test ===
+  ArchType.II not in this pool
+
+=== D. overshoot, frac above 1 means the device exceeded the path, pool test ===
+  r1_baseline, 500 episodes, frac > 1.0 in 0.314 of them
+
+overshoot       n     succ   tip_cost   dev_cost     buckle    clamped
+False         343    0.111      37.03      94.77      0.044      0.000
+True          157    0.204      59.11     123.35      0.675      0.618
+
+  same split excluding clamped episodes, so it is not just the clamp:
+False         343    0.111      37.03      94.77      0.044
+True           60    0.517      28.07      65.88      0.200
+
+  overshoot rate by condition, unclamped only:
+    r1_baseline                 403    0.149
+    r4_w0.0003                  272    0.059
+    r4tip_w0.0003               166    0.096
+    r4tip_w0.001                360    0.072
+    r4tip_w0.003                280    0.125
+    r4tip_w0.01                 293    0.027
+    r4tip_w0.03                 200    0.000
+    sacpid_tip_ki8_d20          198    0.005
+    sacpid_tip_w20_d150         261    0.165
+    sacpid_tip_w20_d20          485    0.049
+    sacpid_tip_w20_d30          394    0.023
+
+=== E. is lost success fully explained by lost reach, pool test ===
+  predicted success uses each condition's own median reach and asks what
+  fraction of anatomies have a shorter path. No policy quality involved.
+
+cond                      reach_med    pred_succ       actual      ratio
+r1_baseline                   216.1        0.130        0.140       1.08
+r4_w0.0003                    151.5        0.000        0.100        n/a
+r4tip_w0.0003                 199.6        0.060        0.110       1.83
+r4tip_w0.001                  203.6        0.100        0.062       0.62
+r4tip_w0.003                  174.4        0.000        0.117        n/a
+r4tip_w0.01                   155.0        0.000        0.033        n/a
+r4tip_w0.03                     0.8        0.000        0.000        n/a
+sacpid_tip_ki8_d20             56.9        0.000        0.000        n/a
+sacpid_tip_w20_d150           209.1        0.120        0.190       1.58
+sacpid_tip_w20_d20             70.0        0.000        0.032        n/a
+sacpid_tip_w20_d30             97.9        0.000        0.030        n/a
+
+  a ratio near a shared constant means reach explains the ordering and
+  the residual is the same for everyone. A ratio that varies means some
+  conditions convert reach into success better than others.
+
+=== F. head to head at matched success and matched cost, pool test ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30, paired over 28 solvable anatomies
+    d insertion      79.7 mm [   61.4    97.6]
+    d tip cost      -6.95    [ -15.22    1.81]
+    d success       0.012    [ -0.077   0.110]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20, paired over 28 solvable anatomies
+    d insertion      62.6 mm [   27.5    94.4]
+    d tip cost       5.14    [ -11.21   20.88]
+    d success       0.302    [  0.212   0.395]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20, paired over 28 solvable anatomies
+    d insertion      57.6 mm [   29.2    86.1]
+    d tip cost       7.50    [  -4.21   18.67]
+    d success       0.109    [  0.048   0.163]
+

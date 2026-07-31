@@ -1,0 +1,288 @@
+############ pool train ############
+=== 1. how much does the jam inflate progress, pool train ===
+  prog_raw scores a jam as 1.000. prog_zero scores it 0. prog_nojam drops it.
+
+  cond                           n      jam   prog_raw  prog_zero  prog_nojam     clean      succ
+  r1_baseline                  500    0.126      0.799      0.673       0.770     0.110     0.104
+  r4tip_w0.0003                200    0.110      0.745      0.635       0.714     0.085     0.065
+  r4tip_w0.001                 400    0.022      0.747      0.725       0.741     0.077     0.050
+  r4tip_w0.003                 200    0.045      0.686      0.641       0.671     0.065     0.070
+  r4tip_w0.01                  200    0.015      0.623      0.608       0.617     0.030     0.015
+  r4tip_w0.03                  200    0.000      0.164      0.164       0.164     0.000     0.000
+  sacpid_tip_ki8_d20           100    0.000      0.146      0.146       0.146     0.000     0.000
+  sacpid_tip_w20_d150          300    0.113      0.754      0.641       0.723     0.117     0.117
+  sacpid_tip_w20_d20           200    0.005      0.475      0.470       0.472     0.050     0.030
+  sacpid_tip_w20_d30           400    0.018      0.334      0.316       0.322     0.022     0.025
+
+  inflation = prog_raw minus prog_zero, which is exactly the jam rate
+  weighted by 1.0, so it hits the high jam conditions hardest.
+
+=== 2. paired against r1_baseline under each variant, pool train ===
+
+  --- prog_raw ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.054 [-0.078 -0.031]   -8.64 [ -24.87    9.49]
+  r4tip_w0.001                100 -0.052 [-0.073 -0.031]  -41.97 [ -51.71  -32.41]
+  r4tip_w0.003                100 -0.113 [-0.142 -0.085]  -37.40 [ -50.44  -23.00]
+  r4tip_w0.01                 100 -0.176 [-0.197 -0.153]  -52.11 [ -62.98  -41.78]
+  r4tip_w0.03                 100 -0.635 [-0.670 -0.600]  -59.38 [ -68.68  -50.23]
+  sacpid_tip_ki8_d20          100 -0.653 [-0.699 -0.606]  -31.45 [ -47.95  -13.64]
+  sacpid_tip_w20_d150         100 -0.044 [-0.065 -0.025]   11.90 [  -1.69   26.41]
+  sacpid_tip_w20_d20          100 -0.324 [-0.364 -0.285]  -51.14 [ -61.03  -40.88]
+  sacpid_tip_w20_d30          100 -0.465 [-0.500 -0.430]  -46.84 [ -58.71  -35.05]
+
+  --- prog_zero ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.038 [-0.078  0.002]   -8.64 [ -25.15    9.43]
+  r4tip_w0.001                100  0.052 [ 0.023  0.080]  -41.97 [ -51.50  -32.33]
+  r4tip_w0.003                100 -0.032 [-0.071  0.007]  -37.40 [ -50.03  -23.07]
+  r4tip_w0.01                 100 -0.065 [-0.096 -0.034]  -52.11 [ -62.59  -41.36]
+  r4tip_w0.03                 100 -0.509 [-0.548 -0.470]  -59.38 [ -68.69  -50.30]
+  sacpid_tip_ki8_d20          100 -0.527 [-0.573 -0.481]  -31.45 [ -47.47  -12.95]
+  sacpid_tip_w20_d150         100 -0.032 [-0.066  0.001]   11.90 [  -2.34   26.90]
+  sacpid_tip_w20_d20          100 -0.203 [-0.248 -0.156]  -51.14 [ -61.12  -40.99]
+  sacpid_tip_w20_d30          100 -0.357 [-0.391 -0.324]  -46.84 [ -58.54  -34.88]
+
+  --- prog_nojam ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003                99 -0.052 [-0.077 -0.029]  -13.12 [ -28.16    3.19]
+  r4tip_w0.001                100 -0.032 [-0.053 -0.012]  -41.97 [ -51.70  -32.68]
+  r4tip_w0.003                100 -0.096 [-0.124 -0.069]  -37.40 [ -50.59  -22.74]
+  r4tip_w0.01                 100 -0.157 [-0.179 -0.134]  -52.11 [ -62.72  -41.51]
+  r4tip_w0.03                 100 -0.611 [-0.648 -0.575]  -59.38 [ -69.33  -49.98]
+  sacpid_tip_ki8_d20          100 -0.629 [-0.672 -0.582]  -31.45 [ -47.75  -13.26]
+  sacpid_tip_w20_d150         100 -0.042 [-0.061 -0.024]   11.90 [  -1.70   26.20]
+  sacpid_tip_w20_d20          100 -0.304 [-0.343 -0.265]  -51.14 [ -61.32  -41.26]
+  sacpid_tip_w20_d30          100 -0.450 [-0.482 -0.417]  -46.84 [ -58.21  -34.92]
+
+=== 3. efficiency under each variant, pool train ===
+  cost removed per unit of progress given up. higher is better.
+
+  --- prog_raw ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003               100      161.4 [  -214.9    480.4]      0.054
+  r4tip_w0.001                100      813.4 [   554.7   1366.9]      0.052
+  r4tip_w0.003                100      331.4 [   209.6    476.2]      0.113
+  r4tip_w0.01                 100      296.7 [   240.6    355.3]      0.176
+  r4tip_w0.03                 100       93.5 [    79.6    107.5]      0.635
+  sacpid_tip_ki8_d20          100       48.1 [    20.3     74.0]      0.653
+  sacpid_tip_w20_d150         100     -267.6 [  -828.3     36.9]      0.044
+  sacpid_tip_w20_d20          100      157.9 [   126.1    192.4]      0.324
+  sacpid_tip_w20_d30          100      100.7 [    76.9    122.9]      0.465
+
+  --- prog_zero ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003               100      230.3 [  -588.2   2524.8]      0.038
+  r4tip_w0.001                100     -808.5 [ -1753.9   -513.4]     -0.052
+  r4tip_w0.003                100     1174.3 [ -6914.0  12350.3]      0.032
+  r4tip_w0.01                 100      806.2 [   494.1   1669.3]      0.065
+  r4tip_w0.03                 100      116.6 [    96.6    138.4]      0.509
+  sacpid_tip_ki8_d20          100       59.7 [    25.0     92.8]      0.527
+  sacpid_tip_w20_d150         100     -374.3 [ -2271.6    873.1]      0.032
+  sacpid_tip_w20_d20          100      252.1 [   183.5    344.3]      0.203
+  sacpid_tip_w20_d30          100      131.3 [    97.5    166.2]      0.357
+
+  --- prog_nojam ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003                99      253.8 [   -58.4    650.0]      0.052
+  r4tip_w0.001                100     1317.6 [   747.7   3836.9]      0.032
+  r4tip_w0.003                100      390.9 [   233.4    585.8]      0.096
+  r4tip_w0.01                 100      332.5 [   262.5    407.2]      0.157
+  r4tip_w0.03                 100       97.2 [    83.0    112.1]      0.611
+  sacpid_tip_ki8_d20          100       50.0 [    20.5     76.5]      0.629
+  sacpid_tip_w20_d150         100     -283.0 [  -825.7     53.1]      0.042
+  sacpid_tip_w20_d20          100      168.0 [   133.3    206.5]      0.304
+  sacpid_tip_w20_d30          100      104.2 [    80.6    127.4]      0.450
+
+=== 4. head to head under each variant, fixed solvable set, pool train ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30
+    d prog_raw        0.289 [   0.210    0.379]  n=19
+    d prog_zero       0.302 [   0.197    0.388]  n=19
+    d prog_nojam      0.304 [   0.208    0.399]  n=19
+    d clean           0.053 [  -0.092    0.184]  n=19
+    d cost           -20.55 [  -56.29    11.89]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20
+    d prog_raw        0.211 [   0.090    0.341]  n=19
+    d prog_zero       0.105 [  -0.031    0.246]  n=19
+    d prog_nojam      0.197 [   0.078    0.324]  n=19
+    d clean           0.026 [  -0.158    0.211]  n=19
+    d cost            55.04 [    9.93   104.67]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20
+    d prog_raw        0.155 [   0.062    0.251]  n=19
+    d prog_zero       0.129 [   0.027    0.230]  n=19
+    d prog_nojam      0.152 [   0.061    0.249]  n=19
+    d clean           0.092 [  -0.079    0.250]  n=19
+    d cost            14.55 [  -13.85    39.42]
+
+=== 5. does the condition ordering survive the metric change, pool train ===
+                     prog_raw  prog_zero  prog_nojam  clean  success
+cond                                                                
+r1_baseline             0.799      0.673       0.770  0.110    0.104
+r4tip_w0.0003           0.745      0.635       0.714  0.085    0.065
+r4tip_w0.001            0.747      0.725       0.741  0.078    0.050
+r4tip_w0.003            0.686      0.641       0.671  0.065    0.070
+r4tip_w0.01             0.623      0.608       0.617  0.030    0.015
+r4tip_w0.03             0.164      0.164       0.164  0.000    0.000
+sacpid_tip_ki8_d20      0.146      0.146       0.146  0.000    0.000
+sacpid_tip_w20_d150     0.754      0.641       0.723  0.117    0.117
+sacpid_tip_w20_d20      0.475      0.470       0.472  0.050    0.030
+sacpid_tip_w20_d30      0.334      0.316       0.322  0.022    0.025
+
+  Spearman between metrics across conditions:
+            prog_raw  prog_zero  prog_nojam  clean  success
+prog_raw       1.000      0.952       0.988  0.960    0.900
+prog_zero      0.952      1.000       0.976  0.875    0.827
+prog_nojam     0.988      0.976       1.000  0.924    0.851
+clean          0.960      0.875       0.924  1.000    0.951
+success        0.900      0.827       0.851  0.951    1.000
+
+  a value near 1.0 means the ranking is unchanged and the metric flaw
+  affects magnitudes only. below about 0.9 means it changes conclusions.
+
+############ pool test ############
+=== 1. how much does the jam inflate progress, pool test ===
+  prog_raw scores a jam as 1.000. prog_zero scores it 0. prog_nojam drops it.
+
+  cond                           n      jam   prog_raw  prog_zero  prog_nojam     clean      succ
+  r1_baseline                  500    0.184      0.832      0.648       0.794     0.198     0.140
+  r4tip_w0.0003                200    0.185      0.754      0.569       0.699     0.120     0.110
+  r4tip_w0.001                 400    0.102      0.755      0.653       0.727     0.135     0.062
+  r4tip_w0.003                 200    0.105      0.721      0.616       0.688     0.110     0.105
+  r4tip_w0.01                  200    0.035      0.607      0.572       0.593     0.075     0.030
+  r4tip_w0.03                  200    0.000      0.137      0.137       0.137     0.000     0.000
+  sacpid_tip_ki8_d20           100    0.000      0.139      0.139       0.139     0.010     0.000
+  sacpid_tip_w20_d150          300    0.137      0.772      0.636       0.736     0.193     0.190
+  sacpid_tip_w20_d20           200    0.030      0.462      0.432       0.446     0.060     0.015
+  sacpid_tip_w20_d30           400    0.013      0.344      0.331       0.335     0.037     0.030
+
+  inflation = prog_raw minus prog_zero, which is exactly the jam rate
+  weighted by 1.0, so it hits the high jam conditions hardest.
+
+=== 2. paired against r1_baseline under each variant, pool test ===
+
+  --- prog_raw ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.078 [-0.107 -0.051]  -12.63 [ -35.89   11.06]
+  r4tip_w0.001                100 -0.077 [-0.096 -0.058]  -41.64 [ -60.86  -22.43]
+  r4tip_w0.003                100 -0.111 [-0.138 -0.085]  -46.75 [ -67.08  -26.73]
+  r4tip_w0.01                 100 -0.225 [-0.258 -0.193]  -71.98 [ -90.87  -54.39]
+  r4tip_w0.03                 100 -0.695 [-0.730 -0.663]  -81.88 [ -99.02  -66.04]
+  sacpid_tip_ki8_d20          100 -0.693 [-0.735 -0.649]  -64.46 [ -88.32  -38.06]
+  sacpid_tip_w20_d150         100 -0.060 [-0.083 -0.037]  -13.46 [ -34.07    7.84]
+  sacpid_tip_w20_d20          100 -0.370 [-0.413 -0.327]  -66.20 [ -83.66  -49.95]
+  sacpid_tip_w20_d30          100 -0.488 [-0.526 -0.452]  -56.65 [ -77.36  -37.31]
+
+  --- prog_zero ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003               100 -0.079 [-0.129 -0.029]  -12.63 [ -36.04   11.69]
+  r4tip_w0.001                100  0.005 [-0.031  0.042]  -41.64 [ -60.19  -22.42]
+  r4tip_w0.003                100 -0.032 [-0.080  0.013]  -46.75 [ -66.97  -26.71]
+  r4tip_w0.01                 100 -0.076 [-0.122 -0.032]  -71.98 [ -90.83  -54.26]
+  r4tip_w0.03                 100 -0.511 [-0.564 -0.460]  -81.88 [ -99.49  -65.23]
+  sacpid_tip_ki8_d20          100 -0.509 [-0.560 -0.453]  -64.46 [ -88.06  -37.94]
+  sacpid_tip_w20_d150         100 -0.012 [-0.054  0.028]  -13.46 [ -34.60    7.23]
+  sacpid_tip_w20_d20          100 -0.216 [-0.264 -0.170]  -66.20 [ -83.32  -50.49]
+  sacpid_tip_w20_d30          100 -0.317 [-0.356 -0.279]  -56.65 [ -76.92  -36.82]
+
+  --- prog_nojam ---
+  cond                      npair           d prog 95pct             d cost 95pct
+  r4tip_w0.0003                96 -0.087 [-0.117 -0.059]  -24.10 [ -45.91   -1.28]
+  r4tip_w0.001                 99 -0.067 [-0.089 -0.046]  -40.11 [ -59.21  -21.43]
+  r4tip_w0.003                 95 -0.101 [-0.131 -0.073]  -51.47 [ -70.60  -32.90]
+  r4tip_w0.01                  99 -0.194 [-0.224 -0.164]  -69.50 [ -87.90  -52.07]
+  r4tip_w0.03                  99 -0.657 [-0.695 -0.619]  -79.51 [ -96.08  -63.76]
+  sacpid_tip_ki8_d20           99 -0.662 [-0.701 -0.621]  -62.80 [ -86.36  -35.79]
+  sacpid_tip_w20_d150          97 -0.053 [-0.076 -0.031]  -10.60 [ -31.90   11.79]
+  sacpid_tip_w20_d20           99 -0.356 [-0.400 -0.310]  -64.28 [ -81.06  -48.37]
+  sacpid_tip_w20_d30           99 -0.452 [-0.486 -0.419]  -54.02 [ -73.67  -35.06]
+
+=== 3. efficiency under each variant, pool test ===
+  cost removed per unit of progress given up. higher is better.
+
+  --- prog_raw ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003               100      162.3 [  -160.8    475.9]      0.078
+  r4tip_w0.001                100      542.0 [   305.6    801.1]      0.077
+  r4tip_w0.003                100      419.6 [   263.3    588.6]      0.111
+  r4tip_w0.01                 100      320.1 [   255.9    387.9]      0.225
+  r4tip_w0.03                 100      117.8 [    93.2    145.1]      0.695
+  sacpid_tip_ki8_d20          100       93.0 [    52.9    126.9]      0.693
+  sacpid_tip_w20_d150         100      225.2 [  -164.4    548.5]      0.060
+  sacpid_tip_w20_d20          100      179.0 [   136.9    223.6]      0.370
+  sacpid_tip_w20_d30          100      116.0 [    79.1    153.3]      0.488
+
+  --- prog_zero ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003               100      160.2 [  -126.6    937.6]      0.079
+  r4tip_w0.001                100    -8935.2 [-38151.2  34477.3]     -0.005
+  r4tip_w0.003                100     1441.9 [-10684.1  16404.7]      0.032
+  r4tip_w0.01                 100      948.8 [   524.7   2461.4]      0.076
+  r4tip_w0.03                 100      160.2 [   121.4    207.5]      0.511
+  sacpid_tip_ki8_d20          100      126.5 [    74.5    181.1]      0.509
+  sacpid_tip_w20_d150         100     1083.9 [-10246.0   9430.3]      0.012
+  sacpid_tip_w20_d20          100      306.6 [   215.7    425.6]      0.216
+  sacpid_tip_w20_d30          100      178.8 [   114.2    252.0]      0.317
+
+  --- prog_nojam ---
+  cond                      npair                    eff 95pct     d prog
+  r4tip_w0.0003                96      278.5 [    26.6    611.6]      0.087
+  r4tip_w0.001                 99      597.2 [   313.1    945.9]      0.067
+  r4tip_w0.003                 95      510.7 [   328.0    741.9]      0.101
+  r4tip_w0.01                  99      359.1 [   276.0    445.6]      0.194
+  r4tip_w0.03                  99      121.0 [    94.8    150.9]      0.657
+  sacpid_tip_ki8_d20           99       94.8 [    54.6    130.0]      0.662
+  sacpid_tip_w20_d150          97      198.8 [  -237.7    631.1]      0.053
+  sacpid_tip_w20_d20           99      180.7 [   137.0    230.7]      0.356
+  sacpid_tip_w20_d30           99      119.4 [    79.7    160.4]      0.452
+
+=== 4. head to head under each variant, fixed solvable set, pool test ===
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30
+    d prog_raw        0.370 [   0.303    0.442]  n=26
+    d prog_zero       0.322 [   0.223    0.416]  n=26
+    d prog_nojam      0.377 [   0.310    0.449]  n=26
+    d clean           0.096 [  -0.019    0.212]  n=26
+    d cost           -21.06 [  -46.79     2.91]
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20
+    d prog_raw        0.228 [   0.139    0.316]  n=26
+    d prog_zero       0.151 [   0.023    0.271]  n=26
+    d prog_nojam      0.219 [   0.126    0.311]  n=25
+    d clean           0.250 [   0.096    0.385]  n=26
+    d cost            35.59 [    4.66    71.64]
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20
+    d prog_raw        0.196 [   0.108    0.282]  n=26
+    d prog_zero       0.119 [   0.027    0.214]  n=26
+    d prog_nojam      0.185 [   0.098    0.274]  n=26
+    d clean           0.231 [   0.106    0.356]  n=26
+    d cost            42.40 [   18.73    69.57]
+
+=== 5. does the condition ordering survive the metric change, pool test ===
+                     prog_raw  prog_zero  prog_nojam  clean  success
+cond                                                                
+r1_baseline             0.832      0.648       0.794  0.198    0.140
+r4tip_w0.0003           0.754      0.569       0.699  0.120    0.110
+r4tip_w0.001            0.755      0.653       0.727  0.135    0.062
+r4tip_w0.003            0.721      0.616       0.688  0.110    0.105
+r4tip_w0.01             0.607      0.572       0.593  0.075    0.030
+r4tip_w0.03             0.137      0.137       0.137  0.000    0.000
+sacpid_tip_ki8_d20      0.139      0.139       0.139  0.010    0.000
+sacpid_tip_w20_d150     0.772      0.636       0.736  0.193    0.190
+sacpid_tip_w20_d20      0.462      0.432       0.446  0.060    0.015
+sacpid_tip_w20_d30      0.344      0.331       0.335  0.038    0.030
+
+  Spearman between metrics across conditions:
+            prog_raw  prog_zero  prog_nojam  clean  success
+prog_raw       1.000      0.927       1.000  1.000    0.927
+prog_zero      0.927      1.000       0.927  0.927    0.787
+prog_nojam     1.000      0.927       1.000  1.000    0.927
+clean          1.000      0.927       1.000  1.000    0.927
+success        0.927      0.787       0.927  0.927    1.000
+
+  a value near 1.0 means the ranking is unchanged and the metric flaw
+  affects magnitudes only. below about 0.9 means it changes conclusions.
+

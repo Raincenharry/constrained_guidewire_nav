@@ -1,0 +1,148 @@
+==================== pool train ====================
+--- anatomy census, pool train ---
+  arch_type ArchType.I   28 distinct anatomies,  1008 episodes
+  arch_type ArchType.II   25 distinct anatomies,   900 episodes
+  arch_type ArchType.IV   22 distinct anatomies,   792 episodes
+  arch_type ArchType.V   25 distinct anatomies,   900 episodes
+
+--- success and insertion by arch_type, pool train ---
+arch_type            ArchType.I  ArchType.II  ArchType.IV  ArchType.V
+cond                                                                 
+r1_baseline               0.129          0.0        0.145       0.144
+r4_w0.0003                0.071          0.0        0.106       0.093
+r4tip_w0.0003             0.107          0.0        0.045       0.100
+r4tip_w0.001              0.045          0.0        0.034       0.120
+r4tip_w0.003              0.071          0.0        0.136       0.107
+r4tip_w0.01               0.000          0.0        0.030       0.013
+r4tip_w0.03               0.000          0.0        0.000       0.000
+sacpid_tip_ki8_d20        0.000          0.0        0.000       0.000
+sacpid_tip_w20_d150       0.167          0.0        0.136       0.160
+sacpid_tip_w20_d20        0.014          0.0        0.036       0.048
+sacpid_tip_w20_d30        0.036          0.0        0.023       0.040
+
+insertion mean
+arch_type            ArchType.I  ArchType.II  ArchType.IV  ArchType.V
+cond                                                                 
+r1_baseline               238.8        233.7        204.1       233.7
+r4_w0.0003                166.7        154.4        150.5       168.6
+r4tip_w0.0003             218.7        214.9        196.7       224.0
+r4tip_w0.001              212.8        212.5        202.1       189.7
+r4tip_w0.003              167.7        157.8        166.6       166.3
+r4tip_w0.01               167.4        165.1        164.2       161.5
+r4tip_w0.03                55.4         58.7         22.4        39.7
+sacpid_tip_ki8_d20         53.7         56.7         92.6        71.2
+sacpid_tip_w20_d150       222.4        203.4        218.6       220.1
+sacpid_tip_w20_d20         99.5         92.3        112.2       100.3
+sacpid_tip_w20_d30         92.0         79.4        100.4        89.4
+
+no progress fraction below 5 mm
+arch_type            ArchType.I  ArchType.II  ArchType.IV  ArchType.V
+cond                                                                 
+r1_baseline               0.000        0.000        0.000       0.016
+r4_w0.0003                0.000        0.027        0.091       0.013
+r4tip_w0.0003             0.000        0.000        0.045       0.040
+r4tip_w0.001              0.009        0.000        0.034       0.050
+r4tip_w0.003              0.060        0.040        0.091       0.120
+r4tip_w0.01               0.000        0.000        0.000       0.027
+r4tip_w0.03               0.625        0.620        0.864       0.700
+sacpid_tip_ki8_d20        0.393        0.420        0.068       0.160
+sacpid_tip_w20_d150       0.000        0.000        0.000       0.027
+sacpid_tip_w20_d20        0.371        0.344        0.164       0.368
+sacpid_tip_w20_d30        0.375        0.410        0.239       0.390
+
+--- r1_baseline by arch_type and seed, pool train ---
+  arch_type  seed  n        ins     succ
+ ArchType.I     0 28 230.817918 0.000000
+ ArchType.I     1 28 310.760468 0.142857
+ ArchType.I     2 28 209.346087 0.178571
+ ArchType.I     3 28 207.380932 0.142857
+ ArchType.I     4 28 235.592814 0.178571
+ArchType.II     0 25 231.613898 0.000000
+ArchType.II     1 25 309.720096 0.000000
+ArchType.II     2 25 215.844847 0.000000
+ArchType.II     3 25 205.564589 0.000000
+ArchType.II     4 25 205.990432 0.000000
+ArchType.IV     0 22 231.801530 0.045455
+ArchType.IV     1 22 243.858058 0.272727
+ArchType.IV     2 22 166.579636 0.181818
+ArchType.IV     3 22 186.671571 0.090909
+ArchType.IV     4 22 191.738431 0.136364
+ ArchType.V     0 25 212.395209 0.040000
+ ArchType.V     1 25 284.013185 0.120000
+ ArchType.V     2 25 243.414581 0.160000
+ ArchType.V     3 25 193.385918 0.240000
+ ArchType.V     4 25 235.236868 0.160000
+
+--- anatomies never solved by ANY condition, pool train ---
+  arch_type ArchType.I   22 of  28 anatomies never solved by any condition, their mean insertion 153.6 mm
+  arch_type ArchType.II   25 of  25 anatomies never solved by any condition, their mean insertion 152.8 mm
+  arch_type ArchType.IV   15 of  22 anatomies never solved by any condition, their mean insertion 152.8 mm
+  arch_type ArchType.V   18 of  25 anatomies never solved by any condition, their mean insertion 152.8 mm
+
+==================== pool test ====================
+--- anatomy census, pool test ---
+  arch_type ArchType.VI   53 distinct anatomies,  1908 episodes
+  arch_type ArchType.VII   47 distinct anatomies,  1692 episodes
+
+--- success and insertion by arch_type, pool test ---
+arch_type            ArchType.VI  ArchType.VII
+cond                                          
+r1_baseline                0.098         0.187
+r4_w0.0003                 0.063         0.142
+r4tip_w0.0003              0.094         0.128
+r4tip_w0.001               0.042         0.085
+r4tip_w0.003               0.063         0.177
+r4tip_w0.01                0.000         0.071
+r4tip_w0.03                0.000         0.000
+sacpid_tip_ki8_d20         0.000         0.000
+sacpid_tip_w20_d150        0.113         0.277
+sacpid_tip_w20_d20         0.011         0.055
+sacpid_tip_w20_d30         0.019         0.043
+
+insertion mean
+arch_type            ArchType.VI  ArchType.VII
+cond                                          
+r1_baseline                260.0         219.4
+r4_w0.0003                 155.4         178.0
+r4tip_w0.0003              230.7         210.6
+r4tip_w0.001               218.8         202.7
+r4tip_w0.003               163.0         180.9
+r4tip_w0.01                148.8         168.7
+r4tip_w0.03                 53.4          19.5
+sacpid_tip_ki8_d20          45.4          87.1
+sacpid_tip_w20_d150        218.9         220.8
+sacpid_tip_w20_d20          71.4         124.7
+sacpid_tip_w20_d30          79.0         102.5
+
+no progress fraction below 5 mm
+arch_type            ArchType.VI  ArchType.VII
+cond                                          
+r1_baseline                0.000         0.000
+r4_w0.0003                 0.013         0.092
+r4tip_w0.0003              0.009         0.064
+r4tip_w0.001               0.038         0.016
+r4tip_w0.003               0.119         0.050
+r4tip_w0.01                0.075         0.000
+r4tip_w0.03                0.575         0.872
+sacpid_tip_ki8_d20         0.538         0.149
+sacpid_tip_w20_d150        0.013         0.007
+sacpid_tip_w20_d20         0.506         0.221
+sacpid_tip_w20_d30         0.514         0.223
+
+--- r1_baseline by arch_type and seed, pool test ---
+   arch_type  seed  n        ins     succ
+ ArchType.VI     0 53 245.832556 0.018868
+ ArchType.VI     1 53 332.472551 0.132075
+ ArchType.VI     2 53 221.557595 0.113208
+ ArchType.VI     3 53 205.079184 0.094340
+ ArchType.VI     4 53 295.048621 0.132075
+ArchType.VII     0 47 206.312186 0.042553
+ArchType.VII     1 47 256.652348 0.297872
+ArchType.VII     2 47 216.295392 0.170213
+ArchType.VII     3 47 200.018942 0.191489
+ArchType.VII     4 47 217.615177 0.234043
+
+--- anatomies never solved by ANY condition, pool test ---
+  arch_type ArchType.VI   44 of  53 anatomies never solved by any condition, their mean insertion 151.6 mm
+  arch_type ArchType.VII   28 of  47 anatomies never solved by any condition, their mean insertion 154.8 mm
+

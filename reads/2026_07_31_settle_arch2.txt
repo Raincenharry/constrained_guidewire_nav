@@ -1,0 +1,145 @@
+=== A. stochastic action selection, does ArchType II ever succeed ===
+
+  file cmp_r1_stoch_train_seed100.csv, 20 episodes
+             n  anat      ins  succ
+arch_type                          
+ArchType.I   4     4  293.576   0.0
+ArchType.II  7     7  227.365   0.0
+ArchType.IV  3     3  224.317   0.0
+ArchType.V   6     6  199.912   0.0
+    ArchType.II: 7 episodes, 0 successes
+
+  file cmp_sacpid_stoch_train_seed100.csv, 20 episodes
+             n  anat      ins  succ
+arch_type                          
+ArchType.I   4     4  128.198   0.0
+ArchType.II  7     7  110.981   0.0
+ArchType.IV  3     3  102.134   0.0
+ArchType.V   6     6  116.019   0.0
+    ArchType.II: 7 episodes, 0 successes
+
+############ pool train ############
+=== B. pool train, headline with and without ArchType.II ===
+cond                     succ_all  succ_ex    ins_all   ins_ex
+r1_baseline                 0.104    0.139      228.6    226.9
+r4_w0.0003                  0.067    0.089      160.5    162.6
+r4tip_w0.0003               0.065    0.087      214.2    214.0
+r4tip_w0.001                0.050    0.067      204.6    202.0
+r4tip_w0.003                0.077    0.102      164.6    166.9
+r4tip_w0.01                 0.010    0.013      164.6    164.5
+r4tip_w0.03                 0.000    0.000       45.0     40.5
+sacpid_tip_ki8_d20          0.000    0.000       67.4     71.0
+sacpid_tip_w20_d150         0.117    0.156      216.3    220.5
+sacpid_tip_w20_d20          0.024    0.032      100.7    103.5
+sacpid_tip_w20_d30          0.025    0.033       90.1     93.6
+
+=== C. pool train, is solvability a property of the anatomy ===
+  20 of 100 anatomies solved by at least one condition
+
+  anatomy level success correlation between conditions (Spearman):
+cond                 r1_baseline  r4_w0.0003  r4tip_w0.0003  r4tip_w0.001  r4tip_w0.003  r4tip_w0.01  r4tip_w0.03  sacpid_tip_ki8_d20  sacpid_tip_w20_d150  sacpid_tip_w20_d20  sacpid_tip_w20_d30
+cond                                                                                                                                                                                              
+r1_baseline                 1.00        0.87           0.69          0.81          0.83         0.34          NaN                 NaN                 0.92                0.64                0.58
+r4_w0.0003                  0.87        1.00           0.70          0.84          0.89         0.36          NaN                 NaN                 0.86                0.72                0.65
+r4tip_w0.0003               0.69        0.70           1.00          0.76          0.65         0.22          NaN                 NaN                 0.76                0.56                0.81
+r4tip_w0.001                0.81        0.84           0.76          1.00          0.89         0.39          NaN                 NaN                 0.87                0.70                0.70
+r4tip_w0.003                0.83        0.89           0.65          0.89          1.00         0.37          NaN                 NaN                 0.83                0.61                0.62
+r4tip_w0.01                 0.34        0.36           0.22          0.39          0.37         1.00          NaN                 NaN                 0.34                0.51                0.27
+r4tip_w0.03                  NaN         NaN            NaN           NaN           NaN          NaN          NaN                 NaN                  NaN                 NaN                 NaN
+sacpid_tip_ki8_d20           NaN         NaN            NaN           NaN           NaN          NaN          NaN                 NaN                  NaN                 NaN                 NaN
+sacpid_tip_w20_d150         0.92        0.86           0.76          0.87          0.83         0.34          NaN                 NaN                 1.00                0.68                0.62
+sacpid_tip_w20_d20          0.64        0.72           0.56          0.70          0.61         0.51          NaN                 NaN                 0.68                1.00                0.42
+sacpid_tip_w20_d30          0.58        0.65           0.81          0.70          0.62         0.27          NaN                 NaN                 0.62                0.42                1.00
+
+=== D. pool train, where do never solved anatomies stop ===
+  never solved         n= 400  p10  163.6  p25  200.7  med  225.1  p75  247.9  p90  383.1
+  solved by something  n= 100  p10  168.1  p25  185.1  med  200.5  p75  219.5  p90  242.1
+
+  r1_baseline insertion histogram on never solved anatomies:
+    (0, 25]             2 #
+    (25, 50]            0 
+    (50, 75]            3 #
+    (75, 100]          13 ######
+    (100, 125]         11 #####
+    (125, 150]          4 ##
+    (150, 175]         27 #############
+    (175, 200]         37 ##################
+    (200, 225]        102 ###################################################
+    (225, 250]        104 ####################################################
+    (250, 275]         32 ################
+    (275, 300]          4 ##
+    (300, 325]          4 ##
+    (325, 350]          0 
+    (350, 375]          3 #
+    (375, 400]         54 ###########################
+
+=== E. pool train, buckling paired at matched insertion, unclamped only ===
+cond                      npair        d buckle rate 95pct                 d ins mm
+r4_w0.0003                   77  -0.009 [-0.033  0.014]    -53.5 [ -58.6  -47.9]
+r4tip_w0.0003                94  -0.004 [-0.026  0.020]     -6.3 [ -11.0   -1.7]
+r4tip_w0.001                 98  -0.017 [-0.037  0.001]     -7.5 [ -12.9   -2.1]
+r4tip_w0.003                 80  -0.005 [-0.025  0.016]    -39.2 [ -47.6  -30.1]
+r4tip_w0.01                  99  -0.021 [-0.039 -0.004]    -46.2 [ -51.5  -40.6]
+r4tip_w0.03                   0  too few paired anatomies
+sacpid_tip_ki8_d20           10  -0.045 [-0.110  0.000]    -30.2 [ -45.5  -16.4]
+sacpid_tip_w20_d150          99  -0.011 [-0.030  0.008]     -9.6 [ -14.7   -4.8]
+sacpid_tip_w20_d20           23  -0.013 [-0.065  0.026]    -57.2 [ -67.2  -46.8]
+sacpid_tip_w20_d30            9   0.000 [ 0.000  0.000]    -52.4 [ -63.8  -41.4]
+
+############ pool test ############
+=== B. pool test, headline with and without ArchType.II ===
+  ArchType.II not present in this pool, nothing to exclude
+
+=== C. pool test, is solvability a property of the anatomy ===
+  28 of 100 anatomies solved by at least one condition
+
+  anatomy level success correlation between conditions (Spearman):
+cond                 r1_baseline  r4_w0.0003  r4tip_w0.0003  r4tip_w0.001  r4tip_w0.003  r4tip_w0.01  r4tip_w0.03  sacpid_tip_ki8_d20  sacpid_tip_w20_d150  sacpid_tip_w20_d20  sacpid_tip_w20_d30
+cond                                                                                                                                                                                              
+r1_baseline                 1.00        0.90           0.84          0.85          0.85         0.46          NaN                 NaN                 0.94                0.70                0.70
+r4_w0.0003                  0.90        1.00           0.87          0.84          0.81         0.41          NaN                 NaN                 0.87                0.70                0.65
+r4tip_w0.0003               0.84        0.87           1.00          0.80          0.78         0.40          NaN                 NaN                 0.80                0.72                0.76
+r4tip_w0.001                0.85        0.84           0.80          1.00          0.80         0.33          NaN                 NaN                 0.81                0.64                0.57
+r4tip_w0.003                0.85        0.81           0.78          0.80          1.00         0.51          NaN                 NaN                 0.87                0.69                0.75
+r4tip_w0.01                 0.46        0.41           0.40          0.33          0.51         1.00          NaN                 NaN                 0.47                0.64                0.48
+r4tip_w0.03                  NaN         NaN            NaN           NaN           NaN          NaN          NaN                 NaN                  NaN                 NaN                 NaN
+sacpid_tip_ki8_d20           NaN         NaN            NaN           NaN           NaN          NaN          NaN                 NaN                  NaN                 NaN                 NaN
+sacpid_tip_w20_d150         0.94        0.87           0.80          0.81          0.87         0.47          NaN                 NaN                 1.00                0.70                0.71
+sacpid_tip_w20_d20          0.70        0.70           0.72          0.64          0.69         0.64          NaN                 NaN                 0.70                1.00                0.71
+sacpid_tip_w20_d30          0.70        0.65           0.76          0.57          0.75         0.48          NaN                 NaN                 0.71                0.71                1.00
+
+=== D. pool test, where do never solved anatomies stop ===
+  never solved         n= 360  p10  166.8  p25  189.5  med  222.1  p75  299.7  p90  384.3
+  solved by something  n= 140  p10  176.0  p25  192.4  med  205.6  p75  237.0  p90  383.3
+
+  r1_baseline insertion histogram on never solved anatomies:
+    (0, 25]             0 
+    (25, 50]            0 
+    (50, 75]            6 ###
+    (75, 100]           4 ##
+    (100, 125]          3 #
+    (125, 150]          2 #
+    (150, 175]         44 ######################
+    (175, 200]         57 ############################
+    (200, 225]         70 ###################################
+    (225, 250]         56 ############################
+    (250, 275]         21 ##########
+    (275, 300]          7 ###
+    (300, 325]          8 ####
+    (325, 350]          2 #
+    (350, 375]          2 #
+    (375, 400]         78 #######################################
+
+=== E. pool test, buckling paired at matched insertion, unclamped only ===
+cond                      npair        d buckle rate 95pct                 d ins mm
+r4_w0.0003                   82  -0.076 [-0.111 -0.045]    -57.8 [ -63.3  -52.0]
+r4tip_w0.0003                86  -0.028 [-0.064  0.009]     -9.9 [ -15.8   -3.8]
+r4tip_w0.001                 96  -0.029 [-0.060  0.002]    -14.9 [ -20.7   -9.2]
+r4tip_w0.003                 78  -0.006 [-0.038  0.026]    -33.1 [ -41.0  -25.2]
+r4tip_w0.01                  86  -0.061 [-0.091 -0.032]    -47.1 [ -53.1  -41.0]
+r4tip_w0.03                   0  too few paired anatomies
+sacpid_tip_ki8_d20            8  -0.031 [-0.094  0.000]    -34.7 [ -51.8  -18.6]
+sacpid_tip_w20_d150          95   0.002 [-0.038  0.044]     -9.9 [ -17.1   -2.9]
+sacpid_tip_w20_d20           21  -0.007 [-0.062  0.043]    -46.6 [ -59.0  -34.0]
+sacpid_tip_w20_d30           17   0.015 [ 0.000  0.044]    -53.5 [ -64.6  -42.8]
+

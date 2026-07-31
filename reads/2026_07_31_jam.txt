@@ -1,0 +1,219 @@
+############ pool train ############
+=== 1. what a jam looks like, pool train ===
+  group                n  frac_med      cost     f_max   clamped     steps
+  jam                158      1.51    205.65    3007.3     0.880       200
+  not jam           3142      0.60     18.15      39.6     0.004       193
+
+  jam rate by path length decile, is it a property of the anatomy:
+      n    p_med    jam
+dec                    
+0    10  202.514  0.052
+1    10  222.366  0.112
+2    10  243.893  0.082
+3    10  258.351  0.067
+4    10  272.421  0.039
+5    10  279.713  0.033
+6    10  288.779  0.027
+7    10  300.689  0.030
+8    10  314.658  0.024
+9    10  334.773  0.012
+
+  jam rate by arch_type:
+             size   mean
+arch_type               
+ArchType.I    924  0.048
+ArchType.II   825  0.017
+ArchType.IV   726  0.054
+ArchType.V    825  0.074
+
+=== 2. jam rate as the safety endpoint, paired, pool train ===
+  cond                           n  jam_rate              d jam 95pct       jam removed per prog
+  r1_baseline                  500     0.126                reference                           
+  r4tip_w0.0003                200     0.110 -0.016 [-0.055  0.026]    0.426 [ -5.028   7.225]
+  r4tip_w0.001                 400     0.022 -0.103 [-0.133 -0.076]   -1.994 [ -3.720  -1.434]
+  r4tip_w0.003                 300     0.040 -0.086 [-0.119 -0.053]    0.771 [  0.380   1.442]
+  r4tip_w0.01                  300     0.017 -0.109 [-0.141 -0.078]    1.391 [  0.751   2.765]
+  r4tip_w0.03                  200     0.000 -0.126 [-0.154 -0.098]    0.247 [  0.186   0.317]
+  sacpid_tip_ki8_d20           200     0.000 -0.126 [-0.154 -0.098]    0.308 [  0.231   0.401]
+  sacpid_tip_w20_d150          300     0.113 -0.013 [-0.051  0.027]    0.398 [ -5.786   9.513]
+  sacpid_tip_w20_d20           500     0.012 -0.114 [-0.142 -0.086]    0.373 [  0.266   0.502]
+  sacpid_tip_w20_d30           400     0.018 -0.108 [-0.139 -0.080]    0.304 [  0.213   0.409]
+
+=== 3. is integrated cost just a jam proxy, pool train ===
+  across 33 seeds:
+    Spearman jam against cost         0.842
+    Spearman jam against cost_no_jam  0.700
+    Spearman cost against prog        0.463
+    Spearman jam against prog         0.455
+
+  if jam and cost correlate near 1.0 and cost_no_jam does not track jam,
+  then the cost metric is largely counting jams and jam rate is the
+  cleaner endpoint to report.
+
+               cond  seed  jam    cost  cost_nj  prog
+        r1_baseline     0 0.05  31.286   23.298 0.769
+        r1_baseline     1 0.39 126.266  107.268 0.527
+        r1_baseline     2 0.08  52.943   29.039 0.662
+        r1_baseline     3 0.03  55.119   52.653 0.705
+        r1_baseline     4 0.08  31.976   17.303 0.701
+      r4tip_w0.0003     0 0.19  73.701   44.798 0.615
+      r4tip_w0.0003     1 0.03  28.055   16.392 0.656
+       r4tip_w0.001     0 0.02   9.687    9.223 0.727
+       r4tip_w0.001     1 0.05  40.298   24.666 0.717
+       r4tip_w0.001     3 0.00  13.428   13.428 0.814
+       r4tip_w0.001     4 0.02   6.788    5.835 0.641
+       r4tip_w0.003     0 0.02  15.513   12.577 0.623
+       r4tip_w0.003     1 0.07  28.722   13.891 0.659
+       r4tip_w0.003     2 0.03  12.368    8.259 0.402
+        r4tip_w0.01     0 0.03  11.981    2.183 0.666
+        r4tip_w0.01     1 0.00   2.842    2.842 0.551
+        r4tip_w0.01     2 0.02   5.515    4.044 0.566
+        r4tip_w0.03     0 0.00   0.281    0.281 0.325
+        r4tip_w0.03     1 0.00   0.000    0.000 0.003
+ sacpid_tip_ki8_d20     1 0.00  28.072   28.072 0.146
+ sacpid_tip_ki8_d20     2 0.00   3.947    3.947 0.383
+sacpid_tip_w20_d150     2 0.14  89.552   67.347 0.561
+sacpid_tip_w20_d150     3 0.08  83.727   71.969 0.673
+sacpid_tip_w20_d150     4 0.12  40.968   14.950 0.689
+ sacpid_tip_w20_d20     0 0.01   9.538    5.241 0.669
+ sacpid_tip_w20_d20     1 0.00   7.221    7.221 0.271
+ sacpid_tip_w20_d20     2 0.00   1.586    1.586 0.442
+ sacpid_tip_w20_d20     3 0.00  14.493   14.493 0.188
+ sacpid_tip_w20_d20     4 0.05  18.513   12.897 0.264
+ sacpid_tip_w20_d30     0 0.01   8.525    2.365 0.413
+ sacpid_tip_w20_d30     1 0.00   1.180    1.180 0.084
+ sacpid_tip_w20_d30     2 0.03  28.819   27.116 0.531
+ sacpid_tip_w20_d30     3 0.03  12.189    2.845 0.236
+
+=== 4. at matched progress, does jam still separate, pool train ===
+  prog in [0.60, 0.80), 856 episodes
+  cond                           n       jam      cost     f_max
+  r1_baseline                  172     0.000     30.25      14.1
+  r4tip_w0.0003                 75     0.000     18.75       8.4
+  r4tip_w0.001                 175     0.000      6.29       7.7
+  r4tip_w0.003                  75     0.000      6.94       6.0
+  r4tip_w0.01                  103     0.000      1.79       5.0
+  sacpid_tip_w20_d150           98     0.000     71.17      12.1
+  sacpid_tip_w20_d20            92     0.000      8.15       7.8
+  sacpid_tip_w20_d30            42     0.000     12.39       3.6
+
+  prog in [0.80, 0.95), 540 episodes
+  cond                           n       jam      cost     f_max
+  r1_baseline                  154     0.000     56.69     123.5
+  r4tip_w0.0003                 44     0.000     42.88      27.0
+  r4tip_w0.001                 131     0.000     13.71      99.7
+  r4tip_w0.003                  52     0.000     26.82      18.4
+  r4tip_w0.01                   24     0.000      8.58      16.6
+  sacpid_tip_w20_d150           66     0.000     51.13      23.3
+  sacpid_tip_w20_d20            44     0.000     13.21      18.5
+  sacpid_tip_w20_d30            23     0.000     29.76      16.2
+
+############ pool test ############
+=== 1. what a jam looks like, pool test ===
+  group                n  frac_med      cost     f_max   clamped     steps
+  jam                269      1.44    201.59    3019.3     0.859       196
+  not jam           3031      0.59     23.86     110.8     0.010       188
+
+  jam rate by path length decile, is it a property of the anatomy:
+      n    p_med    jam
+dec                    
+0    10  198.292  0.052
+1    10  219.908  0.118
+2    10  231.059  0.142
+3    10  248.966  0.094
+4    10  264.290  0.091
+5    10  273.146  0.100
+6    10  285.221  0.070
+7    10  300.841  0.082
+8    10  312.476  0.039
+9    10  337.406  0.027
+
+  jam rate by arch_type:
+              size   mean
+arch_type                
+ArchType.VI   1749  0.094
+ArchType.VII  1551  0.067
+
+=== 2. jam rate as the safety endpoint, paired, pool test ===
+  cond                           n  jam_rate              d jam 95pct       jam removed per prog
+  r1_baseline                  500     0.184                reference                           
+  r4tip_w0.0003                200     0.185  0.001 [-0.051  0.055]   -0.013 [ -0.468   1.606]
+  r4tip_w0.001                 400     0.102 -0.082 [-0.116 -0.046]  -17.487 [-65.800  67.126]
+  r4tip_w0.003                 300     0.093 -0.091 [-0.135 -0.045]    0.745 [  0.294   1.589]
+  r4tip_w0.01                  300     0.023 -0.161 [-0.207 -0.116]    2.351 [  1.128   6.643]
+  r4tip_w0.03                  200     0.000 -0.184 [-0.228 -0.142]    0.360 [  0.261   0.486]
+  sacpid_tip_ki8_d20           200     0.010 -0.174 [-0.220 -0.131]    0.435 [  0.299   0.616]
+  sacpid_tip_w20_d150          300     0.137 -0.047 [-0.095  0.001]    3.813 [-43.486  43.378]
+  sacpid_tip_w20_d20           500     0.032 -0.152 [-0.196 -0.110]    0.492 [  0.326   0.696]
+  sacpid_tip_w20_d30           400     0.013 -0.171 [-0.212 -0.131]    0.541 [  0.379   0.747]
+
+=== 3. is integrated cost just a jam proxy, pool test ===
+  across 33 seeds:
+    Spearman jam against cost         0.792
+    Spearman jam against cost_no_jam  0.638
+    Spearman cost against prog        0.557
+    Spearman jam against prog         0.629
+
+  if jam and cost correlate near 1.0 and cost_no_jam does not track jam,
+  then the cost metric is largely counting jams and jam rate is the
+  cleaner endpoint to report.
+
+               cond  seed  jam    cost  cost_nj  prog
+        r1_baseline     0 0.12  34.726   23.571 0.696
+        r1_baseline     1 0.41 134.141   65.165 0.527
+        r1_baseline     2 0.11  80.790   62.711 0.667
+        r1_baseline     3 0.05  90.500   92.128 0.701
+        r1_baseline     4 0.23  70.304   45.479 0.649
+      r4tip_w0.0003     0 0.28 103.973   35.007 0.516
+      r4tip_w0.0003     1 0.09  34.962   16.808 0.623
+       r4tip_w0.001     0 0.13  27.247    7.870 0.646
+       r4tip_w0.001     1 0.08  46.109   38.892 0.646
+       r4tip_w0.001     3 0.08  53.835   47.226 0.777
+       r4tip_w0.001     4 0.12  34.604   18.833 0.542
+       r4tip_w0.003     0 0.09  23.868   15.707 0.601
+       r4tip_w0.003     1 0.12  46.820   17.267 0.631
+       r4tip_w0.003     2 0.07  26.158    6.396 0.348
+        r4tip_w0.01     0 0.07  16.766    7.895 0.587
+        r4tip_w0.01     1 0.00   3.460    3.460 0.558
+        r4tip_w0.01     2 0.00   0.977    0.977 0.595
+        r4tip_w0.03     0 0.00   0.400    0.400 0.267
+        r4tip_w0.03     1 0.00   0.022    0.022 0.007
+ sacpid_tip_ki8_d20     1 0.00  17.635   17.635 0.139
+ sacpid_tip_ki8_d20     2 0.02   8.499    4.199 0.358
+sacpid_tip_w20_d150     2 0.12  61.095   44.486 0.615
+sacpid_tip_w20_d150     3 0.17  89.293   75.534 0.576
+sacpid_tip_w20_d150     4 0.12  55.522   24.198 0.716
+ sacpid_tip_w20_d20     0 0.05  13.126    9.613 0.606
+ sacpid_tip_w20_d20     1 0.01  18.651   14.988 0.259
+ sacpid_tip_w20_d20     2 0.04   9.113    1.928 0.338
+ sacpid_tip_w20_d20     3 0.01  27.875   22.911 0.194
+ sacpid_tip_w20_d20     4 0.05  33.133   16.051 0.299
+ sacpid_tip_w20_d30     0 0.01   4.879    4.808 0.480
+ sacpid_tip_w20_d30     1 0.00   3.437    3.437 0.089
+ sacpid_tip_w20_d30     2 0.03  82.335   70.101 0.507
+ sacpid_tip_w20_d30     3 0.01  11.125   10.052 0.249
+
+=== 4. at matched progress, does jam still separate, pool test ===
+  prog in [0.60, 0.80), 697 episodes
+  cond                           n       jam      cost     f_max
+  r1_baseline                  144     0.000     65.84     107.0
+  r4tip_w0.0003                 57     0.000     27.15     139.6
+  r4tip_w0.001                 122     0.000     22.62      30.0
+  r4tip_w0.003                  69     0.000     11.22      15.7
+  r4tip_w0.01                   75     0.000      2.65       4.2
+  sacpid_tip_ki8_d20            17     0.000     14.96       3.7
+  sacpid_tip_w20_d150           71     0.000     57.55     100.8
+  sacpid_tip_w20_d20            78     0.000      6.06       8.1
+  sacpid_tip_w20_d30            54     0.000     43.13     154.1
+
+  prog in [0.80, 0.95), 456 episodes
+  cond                           n       jam      cost     f_max
+  r1_baseline                  117     0.000     50.95     240.8
+  r4tip_w0.0003                 34     0.000     28.39     116.6
+  r4tip_w0.001                 102     0.000     25.01      76.5
+  r4tip_w0.003                  33     0.000     30.08      25.2
+  r4tip_w0.01                   34     0.000     17.21       8.2
+  sacpid_tip_w20_d150           60     0.000     62.48     270.4
+  sacpid_tip_w20_d20            49     0.000     29.81      26.4
+  sacpid_tip_w20_d30            25     0.000     49.99     366.2
+
