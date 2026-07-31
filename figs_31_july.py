@@ -104,12 +104,25 @@ def boot(x, min_n=5):
     return float(x.mean()), float(lo), float(hi)
 
 
-def paired_diff(d, cond, metric, thresh_mm):
-    """Both arms above thresh_mm on the same anatomy, unclamped only."""
-    a = d[(d["cond"] == REF) & (d["inserted_final"] > thresh_mm)]
-    b = d[(d["cond"] == cond) & (d["inserted_final"] > thresh_mm)]
-    ga = a.groupby(KEY)[metric].mean().rename("ref")
-    gb = b.groupby(KEY)[metric].mean().rename("arm")
+def paired_diff(d, cond, metric, thresh_mm, mode="any"):
+    """mode 'any':  an anatomy enters if at least one episode of that arm
+                    cleared thresh_mm. Permissive, and for a low insertion
+                    arm it selects that arm's furthest episodes.
+       mode 'mean': an anatomy enters only if the arm's mean insertion over
+                    its episodes cleared thresh_mm. Stricter, and this is the
+                    reading that produces the low retention counts recorded
+                    in the 30 July notes."""
+    a = d[d["cond"] == REF]
+    b = d[d["cond"] == cond]
+    if mode == "any":
+        ga = a[a["inserted_final"] > thresh_mm].groupby(KEY)[metric].mean().rename("ref")
+        gb = b[b["inserted_final"] > thresh_mm].groupby(KEY)[metric].mean().rename("arm")
+    else:
+        ma = a.groupby(KEY)["inserted_final"].mean()
+        mb = b.groupby(KEY)["inserted_final"].mean()
+        keep = ma.index[ma > thresh_mm].intersection(mb.index[mb > thresh_mm])
+        ga = a.groupby(KEY)[metric].mean().reindex(keep).rename("ref")
+        gb = b.groupby(KEY)[metric].mean().reindex(keep).rename("arm")
     j = pd.concat([ga, gb], axis=1).dropna()
     return (j["arm"] - j["ref"]).values
 
@@ -129,17 +142,22 @@ def fig_buckle(df, pool):
         print("  %-10s %7d %9.1f mm  %6.3f [%.3f %.3f]" %
               (SHORT.get(c, c), len(s), s["inserted_final"].mean(), m, lo, hi))
 
-    print("\n=== FIG A panel 2, matched insertion above %.1f mm, paired against R1 ==="
-          % MATCH_MM)
-    print("  %-10s %7s %24s" % ("cond", "npair", "d buckle rate"))
     pairs = []
-    for c in order:
-        if c == REF:
-            continue
-        dd = paired_diff(d, c, "buckle", MATCH_MM)
-        m, lo, hi = boot(dd)
-        pairs.append((c, len(dd), m, lo, hi))
-        print("  %-10s %7d %8.3f [%.3f %.3f]" % (SHORT.get(c, c), len(dd), m, lo, hi))
+    for mode in ("any", "mean"):
+        print("\n=== FIG A panel 2, matched above %.1f mm, mode %s, against R1 ==="
+              % (MATCH_MM, mode))
+        print("  %-10s %7s %24s" % ("cond", "npair", "d buckle rate"))
+        rows2 = []
+        for c in order:
+            if c == REF:
+                continue
+            dd = paired_diff(d, c, "buckle", MATCH_MM, mode)
+            m, lo, hi = boot(dd)
+            rows2.append((c, len(dd), m, lo, hi))
+            print("  %-10s %7d %8.3f [%.3f %.3f]" %
+                  (SHORT.get(c, c), len(dd), m, lo, hi))
+        if mode == "mean":
+            pairs = rows2
 
     print("\n=== FIG A panel 3, threshold sweep, unclamped ===")
     print("  %-10s %s" % ("cond", "".join("%8d" % t for t in THRESHOLDS)))
@@ -176,7 +194,7 @@ def fig_buckle(df, pool):
     ax[1].invert_yaxis()
     ax[1].axvline(0, lw=1.0, color="0.3", ls="--")
     ax[1].set_xlabel("difference in buckle rate against R1")
-    ax[1].set_title("b. matched insertion, paired\n(both arms above %.0f mm)"
+    ax[1].set_title("b. matched insertion, paired, strict\n(arm mean above %.0f mm)"
                     % MATCH_MM, fontsize=10)
 
     for c in order:
@@ -295,13 +313,13 @@ def jam_matched(df, pool):
         s = d[d["cond"] == c]
         print("  %-10s %9.3f %9.3f" % (SHORT.get(c, c), s["jam"].mean(),
                                        s["prog_z"].mean()))
-    for thr in (0.0, MATCH_MM):
-        print("\n  paired against R1, both arms above %.1f mm" % thr)
+    for thr, mode in ((0.0, "any"), (MATCH_MM, "any"), (MATCH_MM, "mean")):
+        print("\n  paired against R1, both arms above %.1f mm, mode %s" % (thr, mode))
         print("  %-10s %7s %24s" % ("cond", "npair", "d jam rate"))
         for c in order:
             if c == REF:
                 continue
-            dd = paired_diff(d, c, "jam", thr)
+            dd = paired_diff(d, c, "jam", thr, mode)
             m, lo, hi = boot(dd)
             print("  %-10s %7d %8.3f [%.3f %.3f]" %
                   (SHORT.get(c, c), len(dd), m, lo, hi))
