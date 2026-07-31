@@ -71,6 +71,35 @@ STYLE = {
     "budget": dict(color="#d62728", marker="^"),
 }
 
+# linestyle and marker per condition, so the threshold sweep is traceable
+# within a colour family
+LINE = {
+    "r1_baseline":         ("-",  "o"),
+    "r4tip_w0.0003":       ("-",  "o"),
+    "r4tip_w0.001":        ("--", "s"),
+    "r4tip_w0.003":        ("-.", "^"),
+    "r4tip_w0.01":         (":",  "D"),
+    "r4tip_w0.03":         ((0, (3, 1, 1, 1)), "v"),
+    "sacpid_tip_w20_d150": ("-",  "o"),
+    "sacpid_tip_w20_d20":  ("--", "s"),
+    "sacpid_tip_w20_d30":  ("-.", "^"),
+    "sacpid_tip_ki8_d20":  (":",  "D"),
+}
+
+# manual label offsets in points, to stop the frontier labels colliding
+LBL_OFF = {
+    "r1_baseline":         (9, 6),
+    "r4tip_w0.0003":       (-52, 9),
+    "r4tip_w0.001":        (9, 6),
+    "r4tip_w0.003":        (9, 6),
+    "r4tip_w0.01":         (9, 6),
+    "r4tip_w0.03":         (9, 6),
+    "sacpid_tip_w20_d150": (9, -15),
+    "sacpid_tip_w20_d20":  (9, -15),
+    "sacpid_tip_w20_d30":  (9, 8),
+    "sacpid_tip_ki8_d20":  (9, 6),
+}
+
 
 def load(pool):
     frames = []
@@ -183,14 +212,16 @@ def fig_buckle(df, pool):
     ax[0].set_title("a. rate by condition\n(ordered by insertion)", fontsize=10)
     ax[0].axvline(0, lw=0.8, color="0.8")
 
-    y2 = np.arange(len(pairs))
-    for i, (c, n, m, lo, hi) in enumerate(pairs):
+    MIN_PAIR = 10
+    pairs_plot = [p for p in pairs if p[1] >= MIN_PAIR and np.isfinite(p[2])]
+    y2 = np.arange(len(pairs_plot))
+    for i, (c, n, m, lo, hi) in enumerate(pairs_plot):
         st = STYLE[family(c)]
         ax[1].errorbar(m, i, xerr=[[m - lo], [hi - m]], fmt=st["marker"],
                        color=st["color"], capsize=3, ms=6)
     ax[1].set_yticks(y2)
     ax[1].set_yticklabels(["%s\nnpair=%d" % (SHORT.get(c, c), n)
-                           for c, n, _, _, _ in pairs], fontsize=8)
+                           for c, n, _, _, _ in pairs_plot], fontsize=8)
     ax[1].invert_yaxis()
     ax[1].axvline(0, lw=1.0, color="0.3", ls="--")
     ax[1].set_xlabel("difference in buckle rate against R1")
@@ -199,8 +230,9 @@ def fig_buckle(df, pool):
 
     for c in order:
         st = STYLE[family(c)]
-        ax[2].plot(THRESHOLDS, sweep[c], marker=".", color=st["color"],
-                   lw=1.2, label=SHORT.get(c, c))
+        ls, mk = LINE.get(c, ("-", "."))
+        ax[2].plot(THRESHOLDS, sweep[c], marker=mk, ls=ls, color=st["color"],
+                   lw=1.3, ms=4.5, label=SHORT.get(c, c))
     ax[2].axvline(BUCKLE_N, lw=0.8, color="0.7", ls=":")
     ax[2].set_xlabel("threshold on device peak force, N")
     ax[2].set_ylabel("buckle rate")
@@ -223,30 +255,30 @@ def fig_frontier(df, pool):
 
     print("\n=== FIG B, efficiency frontier, seed level, pool %s ===" % pool)
     print("  %-10s %6s %22s %22s" % ("cond", "seeds", "progress", "cost"))
-    fig, ax = plt.subplots(figsize=(7.2, 5.4))
+    fig, ax = plt.subplots(figsize=(7.6, 5.6))
     seen = set()
     for c, g in ps.groupby("cond"):
         st = STYLE[family(c)]
         lab = family(c) if family(c) not in seen else None
         seen.add(family(c))
-        ax.scatter(g["prog"], g["cost"], s=18, color=st["color"],
-                   alpha=0.30, marker=st["marker"], zorder=2)
+        ax.scatter(g["prog"], g["cost"], s=26, color=st["color"],
+                   alpha=0.35, marker=st["marker"], zorder=2, linewidths=0)
         mp, mc = g["prog"].mean(), g["cost"].mean()
-        xe = [[mp - g["prog"].min()], [g["prog"].max() - mp]]
-        ye = [[mc - g["cost"].min()], [g["cost"].max() - mc]]
-        ax.errorbar(mp, mc, xerr=xe, yerr=ye, fmt=st["marker"], color=st["color"],
-                    ms=9, capsize=3, lw=1.2, zorder=3, label=lab)
-        ax.annotate(SHORT.get(c, c), (mp, mc), textcoords="offset points",
-                    xytext=(7, 6), fontsize=8)
+        ax.scatter([mp], [mc], s=130, color=st["color"], marker=st["marker"],
+                   edgecolors="white", linewidths=1.0, zorder=4, label=lab)
+        dx, dy = LBL_OFF.get(c, (9, 6))
+        ax.annotate("%s (%d)" % (SHORT.get(c, c), len(g)), (mp, mc),
+                    textcoords="offset points", xytext=(dx, dy), fontsize=8)
         print("  %-10s %6d  %.3f [%.3f %.3f]  %7.2f [%6.2f %6.2f]" % (
             SHORT.get(c, c), len(g), mp, g["prog"].min(), g["prog"].max(),
             mc, g["cost"].min(), g["cost"].max()))
 
-    ax.set_xlabel("progress, jam episodes scored zero")
-    ax.set_ylabel("integrated tip cost, newton steps")
-    ax.set_title("Efficiency frontier, %s pool\nbars are the observed seed range, "
-                 "faint points are individual seeds" % pool, fontsize=10)
-    ax.legend(fontsize=8, frameon=False)
+    ax.set_xlabel("progress, jam episodes scored zero, higher is better")
+    ax.set_ylabel("integrated tip cost, newton steps, lower is better")
+    ax.set_title("Efficiency frontier, %s pool\none faint point per seed, "
+                 "solid marker is the condition mean, seed count in brackets"
+                 % pool, fontsize=9)
+    ax.legend(fontsize=8, frameon=False, loc="upper left")
     fig.tight_layout()
     p = os.path.join(OUT, "figB_frontier_%s.png" % pool)
     fig.savefig(p, bbox_inches="tight")
@@ -257,19 +289,30 @@ def fig_frontier(df, pool):
 def fig_path(df, pool):
     ref = df[df["cond"] == REF]
     reach = ref.groupby(KEY)["inserted_final"].median().rename("reach")
+    jamr = ref.groupby(KEY)["jam"].mean().rename("jamr")
     plen = df.groupby(KEY)[PLEN].first().rename("path")
     solved = (df[df["cond"].isin(REFSET)].groupby(KEY)["success"]
               .max().rename("solved"))
-    t = pd.concat([plen, reach, solved], axis=1).dropna()
+    t = pd.concat([plen, reach, solved, jamr], axis=1).dropna()
 
     ok = t[t["solved"] == 1]
-    no = t[t["solved"] == 0]
+    over = t[(t["solved"] == 0) & (t["reach"] >= t["path"])]
+    short = t[(t["solved"] == 0) & (t["reach"] < t["path"])]
+
     print("\n=== FIG C, path length against reach, pool %s ===" % pool)
     print("  solvable set defined from %s" % ", ".join(REFSET))
-    print("  solved      n=%3d  path mean %6.1f  reach median %6.1f" %
-          (len(ok), ok["path"].mean(), ok["reach"].median()))
-    print("  never       n=%3d  path mean %6.1f  reach median %6.1f" %
-          (len(no), no["path"].mean(), no["reach"].median()))
+    print("  %-28s %5s %10s %12s %10s" %
+          ("group", "n", "path mean", "reach median", "jam rate"))
+    for lab, g in [("solved", ok),
+                   ("never solved, fell short", short),
+                   ("never solved, reach exceeded", over)]:
+        if len(g) == 0:
+            print("  %-28s %5d" % (lab, 0))
+            continue
+        print("  %-28s %5d %10.1f %12.1f %10.3f" %
+              (lab, len(g), g["path"].mean(), g["reach"].median(),
+               g["jamr"].mean()))
+
     best, bacc = np.nan, 0.0
     for thr in np.arange(150, 340, 1.0):
         acc = ((t["path"] < thr) == (t["solved"] == 1)).mean()
@@ -279,20 +322,23 @@ def fig_path(df, pool):
     print("  threshold classifier  %.0f mm at %.1f pct against %.1f pct majority"
           % (best, 100 * bacc, 100 * maj))
 
-    fig, ax = plt.subplots(figsize=(7.2, 5.4))
+    fig, ax = plt.subplots(figsize=(7.4, 5.6))
     lim = [t["path"].min() * 0.9, t["path"].max() * 1.05]
     ax.plot(lim, lim, color="0.6", lw=1.0, ls="--", label="reach equals demand")
-    ax.scatter(no["path"], no["reach"], s=26, facecolors="none",
-               edgecolors="#d62728", lw=1.0, label="never solved")
+    ax.scatter(short["path"], short["reach"], s=26, facecolors="none",
+               edgecolors="#d62728", lw=1.0, label="never solved, fell short")
+    ax.scatter(over["path"], over["reach"], s=34, facecolors="none",
+               edgecolors="#ff7f0e", lw=1.2, marker="D",
+               label="never solved, reach exceeded demand")
     ax.scatter(ok["path"], ok["reach"], s=26, color="#1f77b4",
-               label="solved by an unconstrained arm")
+               label="solved by R1 or d150")
     ax.axvline(best, color="0.3", lw=1.0, ls=":")
     ax.annotate("%.0f mm" % best, (best, lim[0]), textcoords="offset points",
                 xytext=(4, 6), fontsize=8, color="0.3")
     ax.set_xlabel("path length to target at reset, mm")
     ax.set_ylabel("median insertion reached by R1, mm")
     ax.set_title("Solvability is a property of the anatomy, %s pool\n"
-                 "reach is flat, demand is not" % pool, fontsize=10)
+                 "reach does not track demand" % pool, fontsize=10)
     ax.legend(fontsize=8, frameon=False, loc="upper left")
     fig.tight_layout()
     p = os.path.join(OUT, "figC_pathlength_%s.png" % pool)
