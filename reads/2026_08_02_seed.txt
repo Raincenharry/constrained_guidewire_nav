@@ -1,0 +1,218 @@
+############ pool train ############
+=== 1. seed level table, pool train ===
+               cond  seed   n  prog  prog_z    cost  jam  suc     ins       eff  dprog   dcost
+        r1_baseline     0 100 0.819   0.769  31.286 0.05 0.02 226.628  -293.665 -0.096  28.232
+        r1_baseline     1 100 0.917   0.527 126.266 0.39 0.13 289.095  -458.096  0.146 -66.748
+        r1_baseline     2 100 0.742   0.662  52.943 0.08 0.13 210.079   612.915  0.011   6.575
+        r1_baseline     3 100 0.735   0.705  55.119 0.03 0.12 198.872  -138.409 -0.032   4.399
+        r1_baseline     4 100 0.781   0.701  31.976 0.08 0.12 218.455  -965.826 -0.029  27.542
+      r4tip_w0.0003     0 100 0.805   0.615  73.701 0.19 0.06 242.072  -245.309  0.058 -14.184
+      r4tip_w0.0003     1 100 0.686   0.656  28.055 0.03 0.07 186.422  1827.930  0.017  31.463
+       r4tip_w0.001     0 100 0.747   0.727   9.687 0.02 0.06 203.687  -927.559 -0.054  49.831
+       r4tip_w0.001     1 100 0.767   0.717  40.298 0.05 0.11 210.851  -439.530 -0.044  19.220
+       r4tip_w0.001     3 100 0.814   0.814  13.428 0.00 0.02 219.174  -325.638 -0.142  46.090
+       r4tip_w0.001     4 100 0.661   0.641   6.788 0.02 0.01 184.657  1681.216  0.031  52.730
+       r4tip_w0.003     0 100 0.643   0.623  15.513 0.02 0.04 171.822   880.743  0.050  44.005
+       r4tip_w0.003     1 100 0.729   0.659  28.722 0.07 0.10 204.591  2241.807  0.014  30.796
+       r4tip_w0.003     2 100 0.432   0.402  12.368 0.03 0.09 117.491   173.989  0.271  47.150
+        r4tip_w0.01     0 100 0.696   0.666  11.981 0.03 0.02 188.782  6754.410  0.007  47.537
+        r4tip_w0.01     1 100 0.551   0.551   2.842 0.00 0.01 146.480   463.687  0.122  56.676
+        r4tip_w0.01     2 100 0.586   0.566   5.515 0.02 0.00 158.594   506.689  0.107  54.003
+        r4tip_w0.03     0 100 0.325   0.325   0.281 0.00 0.00  89.477   170.189  0.348  59.237
+        r4tip_w0.03     1 100 0.003   0.003   0.000 0.00 0.00   0.612    88.799  0.670  59.518
+ sacpid_tip_ki8_d20     1 100 0.146   0.146  28.072 0.00 0.00  37.253    59.650  0.527  31.445
+ sacpid_tip_ki8_d20     2 100 0.383   0.383   3.947 0.00 0.00  97.524   191.404  0.290  55.570
+sacpid_tip_w20_d150     2 100 0.701   0.561  89.552 0.14 0.11 205.736  -268.357  0.112 -30.034
+sacpid_tip_w20_d150     3 100 0.753   0.673  83.727 0.08 0.13 210.706 44162.779 -0.001 -24.209
+sacpid_tip_w20_d150     4 100 0.809   0.689  40.968 0.12 0.11 232.312 -1158.462 -0.016  18.550
+ sacpid_tip_w20_d20     0 100 0.679   0.669   9.538 0.01 0.03 187.760 14488.383  0.003  49.979
+ sacpid_tip_w20_d20     1 100 0.271   0.271   7.221 0.00 0.03  63.226   130.010  0.402  52.297
+ sacpid_tip_w20_d20     2 100 0.442   0.442   1.586 0.00 0.03 115.835   251.420  0.230  57.932
+ sacpid_tip_w20_d20     3 100 0.188   0.188  14.493 0.00 0.00  47.776    92.800  0.485  45.025
+ sacpid_tip_w20_d20     4 100 0.314   0.264  18.513 0.05 0.03  88.959   100.358  0.409  41.005
+ sacpid_tip_w20_d20     5 100 0.362   0.362  13.791 0.00 0.00  96.968   147.071  0.311  45.727
+ sacpid_tip_w20_d20     6 100 0.269   0.269   3.359 0.00 0.00  68.683   138.957  0.404  56.158
+ sacpid_tip_w20_d20     7 100 0.153   0.153   6.220 0.00 0.00  42.133   102.542  0.520  53.298
+ sacpid_tip_w20_d30     0 100 0.423   0.413   8.525 0.01 0.02 114.013   196.044  0.260  50.993
+ sacpid_tip_w20_d30     1 100 0.084   0.084   1.180 0.00 0.00  22.232    99.100  0.589  58.337
+ sacpid_tip_w20_d30     2 100 0.561   0.531  28.819 0.03 0.03 153.711   217.120  0.141  30.699
+ sacpid_tip_w20_d30     3 100 0.266   0.236  12.189 0.03 0.05  70.357   108.442  0.436  47.329
+
+  spread within condition, the thing anatomy level intervals hide:
+  cond                      seeds   prog_min   prog_max   cost_min   cost_max
+  r1_baseline                   5      0.527      0.769      31.29     126.27
+  r4tip_w0.0003                 2      0.615      0.656      28.06      73.70
+  r4tip_w0.001                  4      0.641      0.814       6.79      40.30
+  r4tip_w0.003                  3      0.402      0.659      12.37      28.72
+  r4tip_w0.01                   3      0.551      0.666       2.84      11.98
+  r4tip_w0.03                   2      0.003      0.325       0.00       0.28
+  sacpid_tip_ki8_d20            2      0.146      0.383       3.95      28.07
+  sacpid_tip_w20_d150           3      0.561      0.689      40.97      89.55
+  sacpid_tip_w20_d20            8      0.153      0.669       1.59      18.51
+  sacpid_tip_w20_d30            4      0.084      0.531       1.18      28.82
+
+=== 2. bootstrap over SEEDS against bootstrap over anatomies, pool train ===
+  the seed level interval is the honest one for a claim about the method.
+
+  cond                      seeds          prog_z over seeds      prog_z over anatomies
+  r1_baseline                   5   0.673 [ 0.597  0.735]   0.673 [ 0.643  0.702]
+  r4tip_w0.0003                 2   0.635 [ 0.615  0.656]   0.635 [ 0.598  0.672]
+  r4tip_w0.001                  4   0.725 [ 0.663  0.790]   0.725 [ 0.703  0.747]
+  r4tip_w0.003                  3   0.561 [ 0.402  0.659]   0.561 [ 0.529  0.595]
+  r4tip_w0.01                   3   0.594 [ 0.551  0.666]   0.594 [ 0.572  0.617]
+  r4tip_w0.03                   2   0.164 [ 0.003  0.325]   0.164 [ 0.136  0.191]
+  sacpid_tip_ki8_d20            2   0.264 [ 0.146  0.383]   0.264 [ 0.232  0.296]
+  sacpid_tip_w20_d150           3   0.641 [ 0.561  0.689]   0.641 [ 0.606  0.676]
+  sacpid_tip_w20_d20            8   0.327 [ 0.231  0.445]   0.327 [ 0.301  0.355]
+  sacpid_tip_w20_d30            4   0.316 [ 0.160  0.472]   0.316 [ 0.291  0.344]
+
+  if the seed interval is several times wider, every earlier interval
+  in this project understates the uncertainty of the method claim.
+
+=== 3. exact permutation on seeds, pool train ===
+  every possible relabelling is enumerated, so the p value is exact.
+  with small seed counts the smallest attainable p is printed too.
+
+  r4tip_w0.01 (3 seeds) against sacpid_tip_w20_d30 (4 seeds)
+    prog_z   obs diff     0.278   p = 0.057  over 35 relabellings
+    cost     obs diff    -5.899   p = 0.543  over 35 relabellings
+    eff      obs diff  2419.752   p = 0.029  over 35 relabellings
+
+  r4tip_w0.003 (3 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.234   p = 0.067  over 165 relabellings
+    cost     obs diff     9.528   p = 0.079  over 165 relabellings
+    eff      obs diff  -832.596   p = 0.994  over 165 relabellings
+
+  r4tip_w0.001 (4 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.397   p = 0.004  over 495 relabellings
+    cost     obs diff     8.210   p = 0.202  over 495 relabellings
+    eff      obs diff -1934.320   p = 0.590  over 495 relabellings
+
+  r4tip_w0.01 (3 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.267   p = 0.042  over 165 relabellings
+    cost     obs diff    -2.561   p = 0.509  over 165 relabellings
+    eff      obs diff   643.486   p = 0.788  over 165 relabellings
+
+=== 4. what the incoming d20 seeds would have to do, pool train ===
+  eff      r4tip_w0.01 mean 2574.929, sacpid_tip_w20_d20 currently 1931.443 over 8 seeds
+           3 new seeds would need to average 4290.891 to draw level
+           current sacpid_tip_w20_d20 seed range   92.800 to 14488.383
+  prog_z   r4tip_w0.01 mean    0.594, sacpid_tip_w20_d20 currently    0.327 over 8 seeds
+           3 new seeds would need to average    1.306 to draw level
+           current sacpid_tip_w20_d20 seed range    0.153 to    0.669
+  cost     r4tip_w0.01 mean    6.779, sacpid_tip_w20_d20 currently    9.340 over 8 seeds
+           3 new seeds would need to average   -0.050 to draw level
+           current sacpid_tip_w20_d20 seed range    1.586 to   18.513
+
+  if the required average lies outside the observed seed range, the
+  comparison cannot be overturned by the seeds already running.
+
+############ pool test ############
+=== 1. seed level table, pool test ===
+               cond  seed   n  prog  prog_z    cost  jam  suc     ins        eff  dprog   dcost
+        r1_baseline     0 100 0.816   0.696  34.726 0.12 0.03 227.258   -980.542 -0.048  47.366
+        r1_baseline     1 100 0.937   0.527 134.141 0.41 0.21 296.837   -430.367  0.121 -52.049
+        r1_baseline     2 100 0.777   0.667  80.790 0.11 0.14 219.084    -70.644 -0.018   1.302
+        r1_baseline     3 100 0.751   0.701  90.500 0.05 0.14 202.701    158.475 -0.053  -8.408
+        r1_baseline     4 100 0.879   0.649  70.304 0.23 0.18 258.655 -10230.926 -0.001  11.788
+      r4tip_w0.0003     0 100 0.796   0.516 103.973 0.28 0.09 246.200   -165.364  0.132 -21.881
+      r4tip_w0.0003     1 100 0.713   0.623  34.962 0.09 0.13 196.322   1864.841  0.025  47.131
+       r4tip_w0.001     0 100 0.776   0.646  27.247 0.13 0.07 217.998  25118.466  0.002  54.846
+       r4tip_w0.001     1 100 0.726   0.646  46.109 0.08 0.18 197.024  18038.033  0.002  35.983
+       r4tip_w0.001     3 100 0.857   0.777  53.835 0.08 0.00 234.982   -219.126 -0.129  28.257
+       r4tip_w0.001     4 100 0.662   0.542  34.604 0.12 0.00 194.916    447.450  0.106  47.489
+       r4tip_w0.003     0 100 0.691   0.601  23.868 0.09 0.04 188.260   1227.770  0.047  58.224
+       r4tip_w0.003     1 100 0.751   0.631  46.820 0.12 0.17 211.031   2025.035  0.017  35.273
+       r4tip_w0.003     2 100 0.418   0.348  26.158 0.07 0.14 114.930    186.143  0.300  55.934
+        r4tip_w0.01     0 100 0.657   0.587  16.766 0.07 0.04 176.519   1066.712  0.061  65.326
+        r4tip_w0.01     1 100 0.558   0.558   3.460 0.00 0.02 144.106    868.991  0.090  78.632
+        r4tip_w0.01     2 100 0.595   0.595   0.977 0.00 0.04 153.814   1522.106  0.053  81.115
+        r4tip_w0.03     0 100 0.267   0.267   0.400 0.00 0.00  72.777    214.075  0.382  81.692
+        r4tip_w0.03     1 100 0.007   0.007   0.022 0.00 0.00   2.175    128.103  0.641  82.070
+ sacpid_tip_ki8_d20     1 100 0.139   0.139  17.635 0.00 0.00  33.372    126.533  0.509  64.457
+ sacpid_tip_ki8_d20     2 100 0.378   0.358   8.499 0.02 0.00  96.599    253.995  0.290  73.593
+sacpid_tip_w20_d150     2 100 0.735   0.615  61.095 0.12 0.15 212.684    634.802  0.033  20.997
+sacpid_tip_w20_d150     3 100 0.746   0.576  89.293 0.17 0.21 210.811    -99.434  0.072  -7.201
+sacpid_tip_w20_d150     4 100 0.836   0.716  55.522 0.12 0.21 235.982   -389.275 -0.068  26.570
+ sacpid_tip_w20_d20     0 100 0.656   0.606  13.126 0.05 0.03 180.117   1622.091  0.043  68.966
+ sacpid_tip_w20_d20     1 100 0.269   0.259  18.651 0.01 0.00  60.504    162.972  0.389  63.442
+ sacpid_tip_w20_d20     2 100 0.378   0.338   9.113 0.04 0.04  97.806    235.627  0.310  72.979
+ sacpid_tip_w20_d20     3 100 0.204   0.194  27.875 0.01 0.01  49.079    119.380  0.454  54.217
+ sacpid_tip_w20_d20     4 100 0.349   0.299  33.133 0.05 0.08  94.940    140.199  0.349  48.960
+ sacpid_tip_w20_d20     5 100 0.329   0.329   8.880 0.00 0.00  91.054    229.353  0.319  73.212
+ sacpid_tip_w20_d20     6 100 0.286   0.286   8.993 0.00 0.00  71.848    201.840  0.362  73.099
+ sacpid_tip_w20_d20     7 100 0.145   0.145  10.896 0.00 0.00  40.048    141.470  0.503  71.196
+ sacpid_tip_w20_d30     0 100 0.490   0.480   4.879 0.01 0.00 130.769    459.787  0.168  77.213
+ sacpid_tip_w20_d30     1 100 0.089   0.089   3.437 0.00 0.00  22.727    140.633  0.559  78.655
+ sacpid_tip_w20_d30     2 100 0.537   0.507  82.335 0.03 0.03 143.882     -1.728  0.141  -0.243
+ sacpid_tip_w20_d30     3 100 0.259   0.249  11.125 0.01 0.09  62.848    177.722  0.399  70.967
+
+  spread within condition, the thing anatomy level intervals hide:
+  cond                      seeds   prog_min   prog_max   cost_min   cost_max
+  r1_baseline                   5      0.527      0.701      34.73     134.14
+  r4tip_w0.0003                 2      0.516      0.623      34.96     103.97
+  r4tip_w0.001                  4      0.542      0.777      27.25      53.84
+  r4tip_w0.003                  3      0.348      0.631      23.87      46.82
+  r4tip_w0.01                   3      0.558      0.595       0.98      16.77
+  r4tip_w0.03                   2      0.007      0.267       0.02       0.40
+  sacpid_tip_ki8_d20            2      0.139      0.358       8.50      17.63
+  sacpid_tip_w20_d150           3      0.576      0.716      55.52      89.29
+  sacpid_tip_w20_d20            8      0.145      0.606       8.88      33.13
+  sacpid_tip_w20_d30            4      0.089      0.507       3.44      82.34
+
+=== 2. bootstrap over SEEDS against bootstrap over anatomies, pool test ===
+  the seed level interval is the honest one for a claim about the method.
+
+  cond                      seeds          prog_z over seeds      prog_z over anatomies
+  r1_baseline                   5   0.648 [ 0.585  0.692]   0.648 [ 0.607  0.686]
+  r4tip_w0.0003                 2   0.569 [ 0.516  0.623]   0.569 [ 0.523  0.615]
+  r4tip_w0.001                  4   0.653 [ 0.568  0.744]   0.653 [ 0.618  0.686]
+  r4tip_w0.003                  3   0.526 [ 0.348  0.631]   0.526 [ 0.484  0.570]
+  r4tip_w0.01                   3   0.580 [ 0.558  0.595]   0.580 [ 0.549  0.610]
+  r4tip_w0.03                   2   0.137 [ 0.007  0.267]   0.137 [ 0.110  0.164]
+  sacpid_tip_ki8_d20            2   0.249 [ 0.139  0.358]   0.249 [ 0.212  0.285]
+  sacpid_tip_w20_d150           3   0.636 [ 0.576  0.716]   0.636 [ 0.589  0.681]
+  sacpid_tip_w20_d20            8   0.307 [ 0.228  0.403]   0.307 [ 0.280  0.335]
+  sacpid_tip_w20_d30            4   0.331 [ 0.169  0.494]   0.331 [ 0.300  0.364]
+
+  if the seed interval is several times wider, every earlier interval
+  in this project understates the uncertainty of the method claim.
+
+=== 3. exact permutation on seeds, pool test ===
+  every possible relabelling is enumerated, so the p value is exact.
+  with small seed counts the smallest attainable p is printed too.
+
+  r4tip_w0.01 (3 seeds) against sacpid_tip_w20_d30 (4 seeds)
+    prog_z   obs diff     0.248   p = 0.086  over 35 relabellings
+    cost     obs diff   -18.377   p = 0.771  over 35 relabellings
+    eff      obs diff   958.500   p = 0.029  over 35 relabellings
+
+  r4tip_w0.003 (3 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.219   p = 0.024  over 165 relabellings
+    cost     obs diff    15.949   p = 0.048  over 165 relabellings
+    eff      obs diff   789.699   p = 0.079  over 165 relabellings
+
+  r4tip_w0.001 (4 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.346   p = 0.004  over 495 relabellings
+    cost     obs diff    24.115   p = 0.006  over 495 relabellings
+    eff      obs diff 10489.589   p = 0.077  over 495 relabellings
+
+  r4tip_w0.01 (3 seeds) against sacpid_tip_w20_d20 (8 seeds)
+    prog_z   obs diff     0.273   p = 0.024  over 165 relabellings
+    cost     obs diff    -9.266   p = 0.158  over 165 relabellings
+    eff      obs diff   795.987   p = 0.024  over 165 relabellings
+
+=== 4. what the incoming d20 seeds would have to do, pool test ===
+  eff      r4tip_w0.01 mean 1152.603, sacpid_tip_w20_d20 currently  356.617 over 8 seeds
+           3 new seeds would need to average 3275.234 to draw level
+           current sacpid_tip_w20_d20 seed range  119.380 to 1622.091
+  prog_z   r4tip_w0.01 mean    0.580, sacpid_tip_w20_d20 currently    0.307 over 8 seeds
+           3 new seeds would need to average    1.307 to draw level
+           current sacpid_tip_w20_d20 seed range    0.145 to    0.606
+  cost     r4tip_w0.01 mean    7.068, sacpid_tip_w20_d20 currently   16.333 over 8 seeds
+           3 new seeds would need to average  -17.640 to draw level
+           current sacpid_tip_w20_d20 seed range    8.880 to   33.133
+
+  if the required average lies outside the observed seed range, the
+  comparison cannot be overturned by the seeds already running.
+

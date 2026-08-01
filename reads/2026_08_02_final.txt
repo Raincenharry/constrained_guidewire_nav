@@ -1,0 +1,128 @@
+############ pool test ############
+=== TABLE 1. conditions, pool test ===
+  progress excludes jam episodes. cost is shadow_tip in newton steps.
+  two intervals: anatomies (n=100) and seeds (n as shown).
+
+  cond                   seeds            prog by anatomy             prog by seed     cost      jam
+  r1_baseline                5   0.792 [ 0.768  0.816]   0.803 [ 0.753  0.853]    82.09    0.184
+  r4tip_w0.0003              2   0.703 [ 0.671  0.735]   0.700 [   nan    nan]    69.47    0.185
+  r4tip_w0.001               4   0.726 [ 0.700  0.751]   0.726 [ 0.648  0.809]    40.45    0.102
+  r4tip_w0.003               3   0.581 [ 0.541  0.624]   0.584 [ 0.374  0.717]    32.28    0.093
+  r4tip_w0.01                3   0.597 [ 0.566  0.629]   0.595 [ 0.558  0.631]     7.07    0.023
+  r4tip_w0.03                2   0.137 [ 0.110  0.164]   0.137 [   nan    nan]     0.21    0.000
+  sacpid_tip_ki8_d20         2   0.250 [ 0.213  0.286]   0.252 [   nan    nan]    13.07    0.010
+  sacpid_tip_w20_d150        3   0.736 [ 0.702  0.769]   0.736 [ 0.694  0.814]    68.64    0.137
+  sacpid_tip_w20_d20         8   0.314 [ 0.287  0.342]   0.315 [ 0.232  0.420]    16.33    0.020
+  sacpid_tip_w20_d30         4   0.337 [ 0.304  0.370]   0.337 [ 0.170  0.504]    25.44    0.013
+
+=== TABLE 2. paired against r1_baseline, pool test ===
+  cond                    npair           d prog 95pct             d cost 95pct        cost per prog
+  r4tip_w0.0003              96 -0.087 [-0.116 -0.058]  -24.10 [ -45.77   -2.14]            279
+  r4tip_w0.001               99 -0.067 [-0.089 -0.047]  -40.11 [ -58.74  -21.45]            597
+  r4tip_w0.003               99 -0.211 [-0.247 -0.175]  -50.46 [ -68.93  -32.31]            239
+  r4tip_w0.01                99 -0.194 [-0.219 -0.167]  -72.58 [ -90.28  -56.34]            374
+  r4tip_w0.03                99 -0.657 [-0.695 -0.621]  -79.51 [ -95.69  -63.89]            121
+  sacpid_tip_ki8_d20         99 -0.547 [-0.580 -0.512]  -66.97 [ -86.68  -47.12]            122
+  sacpid_tip_w20_d150        97 -0.053 [-0.076 -0.032]  -10.60 [ -32.37   11.47]            199
+  sacpid_tip_w20_d20         99 -0.477 [-0.503 -0.452]  -63.38 [ -81.62  -46.78]            133
+  sacpid_tip_w20_d30         99 -0.452 [-0.485 -0.420]  -54.02 [ -74.77  -34.87]            119
+
+  cost per prog is suppressed where the progress difference is under
+  0.02, because the ratio is not estimable there.
+
+=== TABLE 3. the knob, pool test ===
+  SACPID   d ascending -> cost [16.33 25.44 68.64]
+           expected ascending, monotone: True
+  R4       w ascending -> cost [69.47 40.45 32.28  7.07  0.21]
+           expected descending, monotone: True
+
+  per seed budget compliance:
+    sacpid_tip_w20_d20       d    20  seeds [13.1 18.7  9.1 27.9 33.1  8.9  9.  10.9]  over budget 2 of 8
+    sacpid_tip_w20_d30       d    30  seeds [ 4.9  3.4 82.3 11.1]  over budget 1 of 4
+    sacpid_tip_w20_d150      d   150  seeds [61.1 89.3 55.5]  over budget 0 of 3
+
+=== TABLE 4. head to head, fixed solvable set, pool test ===
+  fixed set 26 anatomies, defined from the unconstrained arms only
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30  (3 against 4 seeds)
+    d progress       0.357 [   0.296    0.421]  n=26
+    d cost         -29.351 [ -51.563   -9.097]  n=26
+    d insertion     78.728 [  59.891   97.846]  n=26
+    d success        0.013 [  -0.083    0.125]  n=26
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20  (3 against 8 seeds)
+    d progress       0.369 [   0.308    0.424]  n=26
+    d cost          25.354 [ -10.231   63.021]  n=26
+    d insertion     89.989 [  62.235  117.838]  n=26
+    d success        0.359 [   0.256    0.465]  n=26
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20  (4 against 8 seeds)
+    d progress       0.386 [   0.333    0.442]  n=26
+    d cost          26.936 [  -1.538   55.780]  n=26
+    d insertion     89.236 [  66.671  112.767]  n=26
+    d success        0.144 [   0.091    0.192]  n=26
+
+############ pool train ############
+=== TABLE 1. conditions, pool train ===
+  progress excludes jam episodes. cost is shadow_tip in newton steps.
+  two intervals: anatomies (n=100) and seeds (n as shown).
+
+  cond                   seeds            prog by anatomy             prog by seed     cost      jam
+  r1_baseline                5   0.774 [ 0.749  0.800]   0.776 [ 0.732  0.826]    59.52    0.126
+  r4tip_w0.0003              2   0.722 [ 0.694  0.750]   0.718 [   nan    nan]    50.88    0.110
+  r4tip_w0.001               4   0.743 [ 0.722  0.764]   0.741 [ 0.680  0.796]    17.55    0.022
+  r4tip_w0.003               3   0.592 [ 0.556  0.629]   0.586 [ 0.414  0.709]    18.87    0.040
+  r4tip_w0.01                3   0.606 [ 0.584  0.629]   0.605 [ 0.551  0.686]     6.78    0.017
+  r4tip_w0.03                2   0.164 [ 0.136  0.192]   0.164 [   nan    nan]     0.14    0.000
+  sacpid_tip_ki8_d20         2   0.264 [ 0.232  0.296]   0.264 [   nan    nan]    16.01    0.000
+  sacpid_tip_w20_d150        3   0.732 [ 0.703  0.762]   0.722 [ 0.652  0.783]    71.42    0.113
+  sacpid_tip_w20_d20         8   0.330 [ 0.303  0.357]   0.330 [ 0.233  0.449]     9.34    0.007
+  sacpid_tip_w20_d30         4   0.325 [ 0.296  0.355]   0.323 [ 0.164  0.482]    12.68    0.018
+
+=== TABLE 2. paired against r1_baseline, pool train ===
+  cond                    npair           d prog 95pct             d cost 95pct        cost per prog
+  r4tip_w0.0003              99 -0.052 [-0.078 -0.029]  -13.12 [ -27.70    2.30]            254
+  r4tip_w0.001              100 -0.032 [-0.053 -0.011]  -41.97 [ -51.92  -32.80]           1318
+  r4tip_w0.003              100 -0.183 [-0.218 -0.150]  -40.65 [ -51.83  -29.65]            222
+  r4tip_w0.01               100 -0.168 [-0.188 -0.149]  -52.74 [ -62.99  -42.56]            313
+  r4tip_w0.03               100 -0.611 [-0.646 -0.575]  -59.38 [ -69.19  -50.32]             97
+  sacpid_tip_ki8_d20        100 -0.510 [-0.546 -0.471]  -43.51 [ -55.13  -31.73]             85
+  sacpid_tip_w20_d150       100 -0.042 [-0.061 -0.023]   11.90 [  -2.36   26.55]           -283
+  sacpid_tip_w20_d20        100 -0.445 [-0.472 -0.419]  -50.18 [ -59.65  -40.83]            113
+  sacpid_tip_w20_d30        100 -0.450 [-0.483 -0.416]  -46.84 [ -58.35  -35.00]            104
+
+  cost per prog is suppressed where the progress difference is under
+  0.02, because the ratio is not estimable there.
+
+=== TABLE 3. the knob, pool train ===
+  SACPID   d ascending -> cost [ 9.34 12.68 71.42]
+           expected ascending, monotone: True
+  R4       w ascending -> cost [50.88 17.55 18.87  6.78  0.14]
+           expected descending, monotone: False
+
+  per seed budget compliance:
+    sacpid_tip_w20_d20       d    20  seeds [ 9.5  7.2  1.6 14.5 18.5 13.8  3.4  6.2]  over budget 0 of 8
+    sacpid_tip_w20_d30       d    30  seeds [ 8.5  1.2 28.8 12.2]  over budget 0 of 4
+    sacpid_tip_w20_d150      d   150  seeds [89.6 83.7 41. ]  over budget 0 of 3
+
+=== TABLE 4. head to head, fixed solvable set, pool train ===
+  fixed set 19 anatomies, defined from the unconstrained arms only
+
+  r4tip_w0.01 minus sacpid_tip_w20_d30  (3 against 4 seeds)
+    d progress       0.285 [   0.208    0.361]  n=19
+    d cost         -17.199 [ -52.209   14.675]  n=19
+    d insertion     56.534 [  29.098   86.214]  n=19
+    d success       -0.079 [  -0.189    0.018]  n=19
+
+  r4tip_w0.003 minus sacpid_tip_w20_d20  (3 against 8 seeds)
+    d progress       0.328 [   0.235    0.416]  n=19
+    d cost          36.373 [   8.252   68.151]  n=19
+    d insertion     75.177 [  50.343  100.244]  n=19
+    d success        0.307 [   0.193    0.434]  n=19
+
+  r4tip_w0.001 minus sacpid_tip_w20_d20  (4 against 8 seeds)
+    d progress       0.324 [   0.259    0.387]  n=19
+    d cost          12.072 [  -3.634   31.149]  n=19
+    d insertion     70.255 [  49.786   92.612]  n=19
+    d success        0.184 [   0.092    0.289]  n=19
+

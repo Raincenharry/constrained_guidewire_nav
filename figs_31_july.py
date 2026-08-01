@@ -33,6 +33,7 @@ BUCKLE_N = 500.0
 THRESHOLDS = [100, 200, 300, 400, 500, 750, 1000]
 NBOOT = 5000
 RNG = np.random.default_rng(0)
+CONNECT = True   # hairlines from each seed point to its condition mean
 
 os.makedirs(OUT, exist_ok=True)
 plt.rcParams.update({
@@ -86,19 +87,67 @@ LINE = {
     "sacpid_tip_ki8_d20":  (":",  "D"),
 }
 
-# manual label offsets in points, to stop the frontier labels colliding
-LBL_OFF = {
-    "r1_baseline":         (9, 6),
-    "r4tip_w0.0003":       (-52, 9),
-    "r4tip_w0.001":        (9, 6),
-    "r4tip_w0.003":        (9, 6),
-    "r4tip_w0.01":         (9, 6),
-    "r4tip_w0.03":         (9, 6),
-    "sacpid_tip_w20_d150": (9, -15),
-    "sacpid_tip_w20_d20":  (9, -15),
-    "sacpid_tip_w20_d30":  (9, 8),
-    "sacpid_tip_ki8_d20":  (9, 6),
-}
+# candidate label offsets in points, tried in order. the first candidate whose
+# text box misses every condition mean marker, the legend, and every already
+# placed label wins. replaces the hand tuned offsets, which were valid for one
+# pool and one set of seed counts only.
+LBL_CAND = [(9, 6), (9, -14), (-9, 6), (-9, -14),
+            (9, 18), (9, -26), (-9, 18), (-9, -26),
+            (0, 20), (0, -30)]
+
+# manual override, only needed if a rerun prints the fallback warning.
+# key is the condition name, value is an offset in points.
+LBL_FORCE = {}
+
+MARK_HALF = 8.0   # half size in points of the s=130 condition mean marker
+LBL_PAD = 3.0     # clearance in points around every placed label
+
+
+def _overlap(a, b):
+    """a and b are (x0, y0, x1, y1) boxes in display points."""
+    return not (a[2] < b[0] or b[2] < a[0] or a[3] < b[1] or b[3] < a[1])
+
+
+def place_labels(fig, ax, items, fontsize=8):
+    """items is a list of (cond, x, y, text) in data coordinates.
+
+    Places each label at the first candidate offset that collides with
+    nothing already on the axis. Works in display coordinates, so it is
+    independent of the axis range and needs no retuning when a pool changes
+    or a seed count grows. Labels are placed from the top of the plot
+    downwards so the result is deterministic."""
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+    items = sorted(items, key=lambda it: -it[2])
+    pts = [ax.transData.transform((x, y)) for _, x, y, _ in items]
+    taken = [(px - MARK_HALF, py - MARK_HALF, px + MARK_HALF, py + MARK_HALF)
+             for px, py in pts]
+    leg = ax.get_legend()
+    if leg is not None:
+        bb = leg.get_window_extent(renderer=rend)
+        taken.append((bb.x0 - LBL_PAD, bb.y0 - LBL_PAD,
+                      bb.x1 + LBL_PAD, bb.y1 + LBL_PAD))
+    for (cond, x, y, text) in items:
+        cands = [LBL_FORCE[cond]] if cond in LBL_FORCE else LBL_CAND
+        chosen, box = cands[0], None
+        for dx, dy in cands:
+            t = ax.annotate(text, (x, y), textcoords="offset points",
+                            xytext=(dx, dy), fontsize=fontsize)
+            bb = t.get_window_extent(renderer=rend)
+            trial = (bb.x0 - LBL_PAD, bb.y0 - LBL_PAD,
+                     bb.x1 + LBL_PAD, bb.y1 + LBL_PAD)
+            t.remove()
+            if not any(_overlap(trial, o) for o in taken):
+                chosen, box = (dx, dy), trial
+                break
+        t = ax.annotate(text, (x, y), textcoords="offset points",
+                        xytext=chosen, fontsize=fontsize)
+        if box is None:
+            bb = t.get_window_extent(renderer=rend)
+            box = (bb.x0 - LBL_PAD, bb.y0 - LBL_PAD,
+                   bb.x1 + LBL_PAD, bb.y1 + LBL_PAD)
+            print("  LABEL FALLBACK for %s, no candidate was free" % cond)
+        taken.append(box)
 
 
 def load(pool):
@@ -257,6 +306,7 @@ def fig_frontier(df, pool):
     print("  %-10s %6s %22s %22s" % ("cond", "seeds", "progress", "cost"))
     fig, ax = plt.subplots(figsize=(7.6, 5.6))
     seen = set()
+    labels = []
     for c, g in ps.groupby("cond"):
         st = STYLE[family(c)]
         lab = family(c) if family(c) not in seen else None
@@ -264,11 +314,13 @@ def fig_frontier(df, pool):
         ax.scatter(g["prog"], g["cost"], s=26, color=st["color"],
                    alpha=0.35, marker=st["marker"], zorder=2, linewidths=0)
         mp, mc = g["prog"].mean(), g["cost"].mean()
+        if CONNECT:
+            for _, r in g.iterrows():
+                ax.plot([r["prog"], mp], [r["cost"], mc], color=st["color"],
+                        lw=0.5, alpha=0.16, zorder=1)
         ax.scatter([mp], [mc], s=130, color=st["color"], marker=st["marker"],
                    edgecolors="white", linewidths=1.0, zorder=4, label=lab)
-        dx, dy = LBL_OFF.get(c, (9, 6))
-        ax.annotate("%s (%d)" % (SHORT.get(c, c), len(g)), (mp, mc),
-                    textcoords="offset points", xytext=(dx, dy), fontsize=8)
+        labels.append((c, mp, mc, "%s (%d)" % (SHORT.get(c, c), len(g))))
         print("  %-10s %6d  %.3f [%.3f %.3f]  %7.2f [%6.2f %6.2f]" % (
             SHORT.get(c, c), len(g), mp, g["prog"].min(), g["prog"].max(),
             mc, g["cost"].min(), g["cost"].max()))
@@ -279,7 +331,9 @@ def fig_frontier(df, pool):
                  "solid marker is the condition mean, seed count in brackets"
                  % pool, fontsize=9)
     ax.legend(fontsize=8, frameon=False, loc="upper left")
+    ax.margins(x=0.10, y=0.10)
     fig.tight_layout()
+    place_labels(fig, ax, labels)
     p = os.path.join(OUT, "figB_frontier_%s.png" % pool)
     fig.savefig(p, bbox_inches="tight")
     plt.close(fig)
