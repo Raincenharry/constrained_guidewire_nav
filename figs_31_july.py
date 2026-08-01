@@ -312,6 +312,7 @@ def fig_frontier(df, pool):
     fig, ax = plt.subplots(figsize=(7.6, 5.6))
     seen = set()
     labels = []
+    faint = []
     for c, g in ps.groupby("cond"):
         st = STYLE[family(c)]
         lab = family(c) if family(c) not in seen else None
