@@ -33,7 +33,9 @@ BUCKLE_N = 500.0
 THRESHOLDS = [100, 200, 300, 400, 500, 750, 1000]
 NBOOT = 5000
 RNG = np.random.default_rng(0)
-CONNECT = True   # hairlines from each seed point to its condition mean
+CONNECT = False  # hairlines from seed to mean: tried and rejected, too noisy
+                 # with eight d20 seeds. faint points are deliberately not
+                 # individually identified, say so in the caption.
 
 os.makedirs(OUT, exist_ok=True)
 plt.rcParams.update({
@@ -108,7 +110,7 @@ def _overlap(a, b):
     return not (a[2] < b[0] or b[2] < a[0] or a[3] < b[1] or b[3] < a[1])
 
 
-def place_labels(fig, ax, items, fontsize=8):
+def place_labels(fig, ax, items, fontsize=8, avoid=None):
     """items is a list of (cond, x, y, text) in data coordinates.
 
     Places each label at the first candidate offset that collides with
@@ -122,6 +124,9 @@ def place_labels(fig, ax, items, fontsize=8):
     pts = [ax.transData.transform((x, y)) for _, x, y, _ in items]
     taken = [(px - MARK_HALF, py - MARK_HALF, px + MARK_HALF, py + MARK_HALF)
              for px, py in pts]
+    for x, y in (avoid or []):
+        px, py = ax.transData.transform((x, y))
+        taken.append((px - 4.0, py - 4.0, px + 4.0, py + 4.0))
     leg = ax.get_legend()
     if leg is not None:
         bb = leg.get_window_extent(renderer=rend)
@@ -321,6 +326,8 @@ def fig_frontier(df, pool):
         ax.scatter([mp], [mc], s=130, color=st["color"], marker=st["marker"],
                    edgecolors="white", linewidths=1.0, zorder=4, label=lab)
         labels.append((c, mp, mc, "%s (%d)" % (SHORT.get(c, c), len(g))))
+        for _, r in g.iterrows():
+            faint.append((r["prog"], r["cost"]))
         print("  %-10s %6d  %.3f [%.3f %.3f]  %7.2f [%6.2f %6.2f]" % (
             SHORT.get(c, c), len(g), mp, g["prog"].min(), g["prog"].max(),
             mc, g["cost"].min(), g["cost"].max()))
@@ -333,7 +340,7 @@ def fig_frontier(df, pool):
     ax.legend(fontsize=8, frameon=False, loc="upper left")
     ax.margins(x=0.10, y=0.10)
     fig.tight_layout()
-    place_labels(fig, ax, labels)
+    place_labels(fig, ax, labels, avoid=faint)
     p = os.path.join(OUT, "figB_frontier_%s.png" % pool)
     fig.savefig(p, bbox_inches="tight")
     plt.close(fig)
