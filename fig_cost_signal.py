@@ -36,9 +36,10 @@ for col, lab, c in [('force_max', 'max along device', 'tab:purple'),
     ax[0].plot(x, med, 'o-', color=c, lw=2, ms=4, label=lab)
     ax[0].fill_between(x, lo, hi, color=c, alpha=0.15, lw=0)
 
-ax[0].axhline(CEIL, color='0.3', ls='--', lw=1.2)
-ax[0].text(60, CEIL * 1.25, 'hinge ceiling %.0f N (threshold 0.85 N)' % CEIL, fontsize=8, color='0.3')
 ax[0].set_yscale('log')
+ax[0].axhline(CEIL, color='0.3', ls='--', lw=1.2)
+ax[0].text(0.03, 0.30, 'hinge ceiling 5 N\n(threshold 0.85 N)',
+           transform=ax[0].transAxes, ha='left', fontsize=8, color='0.3')
 ax[0].set_ylabel('peak force per episode (N)')
 ax[0].set_xlabel('insertion depth at episode end (mm)')
 ax[0].set_title('a. raw force signal')
@@ -51,9 +52,13 @@ for col, lab, c in [('shadow_max', 'cost from max along device', 'tab:purple'),
     lo, hi = g.quantile(0.25).values, g.quantile(0.75).values
     x = ctr[:len(med)]
     ax[1].plot(x, med, 'o-', color=c, lw=2, ms=4, label=lab)
-    ax[1].fill_between(x, lo, hi, color=c, alpha=0.15, lw=0)
+    ax[1].fill_between(x, np.maximum(lo, 0.1), hi, color=c, alpha=0.15, lw=0)
 
-ax[1].set_yscale('symlog', linthresh=1.0)
+for a in ax:
+    a.set_xlim(50, 400)
+
+ax[1].set_yscale('log')
+ax[1].set_ylim(0.1, 1500)
 ax[1].set_ylabel('integrated cost per episode (newton steps)')
 ax[1].set_xlabel('insertion depth at episode end (mm)')
 ax[1].set_title('b. integrated cost, same hinge, two signals')
