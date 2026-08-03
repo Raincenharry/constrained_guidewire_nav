@@ -24,15 +24,16 @@ inserted_final  3600.0  149.740579   106.566780  0.002201  61.183469  160.727899
 
 correlation with inserted_final
   force_max    pearson +0.427   spearman +0.889   n 3600
-  shadow_max   pearson +0.751   spearman +0.874   n 3600
   tip_max      pearson +0.388   spearman +0.718   n 3600
+  shadow_max   pearson +0.751   spearman +0.874   n 3600
+  shadow_tip   pearson +0.420   spearman +0.687   n 3600
   tip_mean     pearson +0.356   spearman +0.678   n 3600
 
 binned by insertion depth, mean of each signal
-           force_max       shadow_max       tip_max       tip_mean      
-                mean count       mean count    mean count     mean count
-bin                                                                     
-(0, 100]       0.946  1070      7.231  1070   0.934  1070    0.148  1070
-(100, 200]     4.658  1446     38.974  1446   2.583  1446    0.286  1446
-(200, 300]   269.298   783    181.725   783   5.013   783    0.593   783
-(300, 400]  3089.874   301    550.771   301  11.224   301    1.906   301
+           force_max       tip_max       shadow_max       shadow_tip      
+                mean count    mean count       mean count       mean count
+bin                                                                       
+(0, 100]       0.946  1070   0.934  1070      7.231  1070      7.220  1070
+(100, 200]     4.658  1446   2.583  1446     38.974  1446     18.322  1446
+(200, 300]   269.298   783   5.013   783    181.725   783     47.010   783
+(300, 400]  3089.874   301  11.224   301    550.771   301    193.977   301

@@ -31,7 +31,7 @@ print(d[cols].describe().T.to_string())
 
 print()
 print('correlation with inserted_final')
-for c in ['force_max', 'shadow_max', 'tip_max', 'tip_mean']:
+for c in ['force_max', 'tip_max', 'shadow_max', 'shadow_tip', 'tip_mean']:
     ok = d[[c, 'inserted_final']].dropna()
     if len(ok) > 2:
         print('  %-12s pearson %+.3f   spearman %+.3f   n %d' % (
@@ -45,4 +45,4 @@ print('binned by insertion depth, mean of each signal')
 bins = [0, 100, 200, 300, 400, 500, 10000]
 d['bin'] = pd.cut(d['inserted_final'], bins)
 print(d.groupby('bin', observed=True)[
-    ['force_max', 'shadow_max', 'tip_max', 'tip_mean']].agg(['mean', 'count']).round(3).to_string())
+    ['force_max', 'tip_max', 'shadow_max', 'shadow_tip']].agg(['mean', 'count']).round(3).to_string())
