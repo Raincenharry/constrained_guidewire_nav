@@ -48,7 +48,9 @@ for tag, budget, col, lab in CONDS:
     ax[0].fill_between(ep, clo, chi, color=col, alpha=0.15, lw=0)
     ax[0].axhline(budget, color=col, ls=':', lw=1.2)
 
+    llo, lhi = np.percentile(lam, [25, 75], axis=0)
     ax[1].plot(ep, np.median(lam, axis=0), color=col, lw=2, label=lab + ' (%d)' % n)
+    ax[1].fill_between(ep, np.maximum(llo, 3e-7), lhi, color=col, alpha=0.15, lw=0)
 
 for a in ax:
     a.axvspan(0, 20, color='0.85', alpha=0.6, lw=0)
@@ -59,7 +61,7 @@ for a in ax:
 ax[0].set_yscale('log')
 ax[0].set_ylabel('training rollout cost (newton steps)')
 ax[0].set_title('a. cost against budget, dotted line is d')
-ax[1].set_yscale('symlog', linthresh=1e-5)
+ax[1].set_yscale('symlog', linthresh=1e-6)
 ax[1].set_ylim(0, 0.2)
 ax[1].set_ylabel('Lagrange multiplier')
 ax[1].set_title('b. multiplier, shaded region is warmup')
