@@ -1,0 +1,136 @@
+ANNEAL ARM. Training traces and episode logs only.
+No epoch 50 checkpoint and no evaluation: the array was cancelled.
+Schedule assumed from 27 July notes: d held at 150 through epoch 20,
+linear to 20 by epoch 30, held thereafter. Config check printed below.
+Source traces_2026_08_03.tar.gz and data/. Script anneal_read.py
+
+======================================================================
+runs_sacpid_tip_anneal_d20_s0
+  config mentions 'anneal': True
+  config mentions 'cost_limit': True
+  config mentions 'warmup': True
+  columns: epoch=Train/Epoch cost=Metrics/EpCost lambda=Metrics/LagrangeMultiplier  nrows=7
+
+  B_lag1 = ep_cost(e-1)/d(e), the 27 July convention.
+  B_same = ep_cost(e)/d(e). Both printed: the notes and this script
+  differed by one epoch of alignment. Verdict is identical either way.
+  epoch        d    ep_cost      lambda   B_lag1   B_same
+      0   150.00      61.36    0.000000      nan     0.41
+      1   150.00      90.40    0.000000     0.41     0.60
+      2   150.00      85.33    0.000000     0.60     0.57
+      3   150.00      36.54    0.000000     0.57     0.24
+      4   150.00      24.21    0.000000     0.24     0.16
+      5   150.00      22.77    0.000000     0.16     0.15
+      6   150.00      20.89    0.000000     0.15     0.14
+  last logged epoch 6, ep_cost 20.89
+
+======================================================================
+runs_sacpid_tip_anneal_d20_s1
+  config mentions 'anneal': True
+  config mentions 'cost_limit': True
+  config mentions 'warmup': True
+  columns: epoch=Train/Epoch cost=Metrics/EpCost lambda=Metrics/LagrangeMultiplier  nrows=35
+
+  B_lag1 = ep_cost(e-1)/d(e), the 27 July convention.
+  B_same = ep_cost(e)/d(e). Both printed: the notes and this script
+  differed by one epoch of alignment. Verdict is identical either way.
+  epoch        d    ep_cost      lambda   B_lag1   B_same
+      0   150.00      63.91    0.000000      nan     0.43
+      1   150.00      81.33    0.000000     0.43     0.54
+      2   150.00     135.13    0.000000     0.54     0.90
+      3   150.00     180.25    0.000000     0.90     1.20
+      4   150.00     177.42    0.000000     1.20     1.18
+      5   150.00     149.14    0.000000     1.18     0.99
+      6   150.00     114.65    0.000000     0.99     0.76
+      7   150.00     150.38    0.000000     0.76     1.00
+      8   150.00     138.73    0.000000     1.00     0.92
+      9   150.00     117.52    0.000000     0.92     0.78
+     10   150.00     120.59    0.000000     0.78     0.80
+     11   150.00     108.71    0.000000     0.80     0.72
+     12   150.00     112.42    0.000000     0.72     0.75
+     13   150.00     109.21    0.000000     0.75     0.73
+     14   150.00     106.08    0.000000     0.73     0.71
+     15   150.00     118.34    0.000000     0.71     0.79
+     16   150.00     135.02    0.000000     0.79     0.90
+     17   150.00     132.19    0.000000     0.90     0.88
+     18   150.00     129.95    0.000000     0.88     0.87
+     19   150.00     106.57    0.000000     0.87     0.71
+     20   150.00      99.86    0.000000     0.71     0.67
+     21   137.00     105.96    0.000021     0.73     0.77
+     22   124.00     119.53    0.000000     0.85     0.96
+     23   111.00     105.95    0.000177     1.08     0.95
+     24    98.00      89.63    0.001636     1.08     0.91
+     25    85.00      63.51    0.000745     1.05     0.75
+     26    72.00      91.01    0.001461     0.88     1.26
+     27    59.00      48.14    0.012606     1.54     0.82
+     28    46.00       7.77    0.009155     1.05     0.17
+     29    33.00      39.35    0.000059     0.24     1.19
+     30    20.00      43.64    0.006841     1.97     2.18
+     31    20.00      29.85    0.016473     2.18     1.49
+     32    20.00      22.19    0.021883     1.49     1.11
+     33    20.00       5.76    0.024026     1.11     0.29
+     34    20.00       4.02    0.016701     0.29     0.20
+
+  peak lambda from epoch 20: 0.024026
+  last logged epoch 34, ep_cost 4.02
+
+======================================================================
+runs_sacpid_tip_anneal_d20_s2
+  config mentions 'anneal': True
+  config mentions 'cost_limit': True
+  config mentions 'warmup': True
+  columns: epoch=Train/Epoch cost=Metrics/EpCost lambda=Metrics/LagrangeMultiplier  nrows=17
+
+  B_lag1 = ep_cost(e-1)/d(e), the 27 July convention.
+  B_same = ep_cost(e)/d(e). Both printed: the notes and this script
+  differed by one epoch of alignment. Verdict is identical either way.
+  epoch        d    ep_cost      lambda   B_lag1   B_same
+      0   150.00      74.41    0.000000      nan     0.50
+      1   150.00      97.90    0.000000     0.50     0.65
+      2   150.00     117.19    0.000000     0.65     0.78
+      3   150.00      76.82    0.000000     0.78     0.51
+      4   150.00     103.06    0.000000     0.51     0.69
+      5   150.00      83.31    0.000000     0.69     0.56
+      6   150.00      95.00    0.000000     0.56     0.63
+      7   150.00     126.08    0.000000     0.63     0.84
+      8   150.00     116.77    0.000000     0.84     0.78
+      9   150.00      99.24    0.000000     0.78     0.66
+     10   150.00      58.89    0.000000     0.66     0.39
+     11   150.00      73.37    0.000000     0.39     0.49
+     12   150.00      81.91    0.000000     0.49     0.55
+     13   150.00      80.69    0.000000     0.55     0.54
+     14   150.00     103.22    0.000000     0.54     0.69
+     15   150.00      90.76    0.000000     0.69     0.61
+     16   150.00      77.05    0.000000     0.61     0.51
+  last logged epoch 16, ep_cost 77.05
+
+======================================================================
+BLOCK LEVEL, from episode logs. 100 episode blocks, dominant env_instance.
+
+runs_sacpid_tip_anneal_d20_s0   n=218   cost column shadow_tip
+   block   epoch    stuck  inserted      cost   success
+       0     3.2     0.31     162.6     34.80     0.030
+       1     6.5     0.00     222.4      9.17     0.020
+
+runs_sacpid_tip_anneal_d20_s1   n=1102   cost column shadow_tip
+   block   epoch    stuck  inserted      cost   success
+       0     3.3     0.37     135.9     94.54     0.030
+       1     6.6     0.00     288.5    103.94     0.010
+       2     9.8     0.00     276.1     86.70     0.060
+       3    12.9     0.00     243.3     80.95     0.120
+       4    16.0     0.00     249.8     77.25     0.110
+       5    19.1     0.01     266.9     90.35     0.100
+       6    22.2     0.00     251.1     75.11     0.080
+       7    25.3     0.02     222.6     44.40     0.120
+       8    28.5     0.16     147.9     19.35     0.080
+       9    31.8     0.64      55.0      2.83     0.010
+      10    35.2     0.72      35.3      0.00     0.000
+
+runs_sacpid_tip_anneal_d20_s2   n=529   cost column shadow_tip
+   block   epoch    stuck  inserted      cost   success
+       0     3.3     0.38     142.6     57.79     0.000
+       1     6.6     0.00     220.8     45.49     0.030
+       2     9.8     0.00     223.9     70.68     0.050
+       3    13.1     0.00     177.4     35.22     0.020
+       4    16.4     0.00     203.7     45.08     0.010
+
