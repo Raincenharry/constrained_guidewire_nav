@@ -1,0 +1,355 @@
+############ pool train ############
+=== 1. how much of the cost is the jam, pool train ===
+  jam episodes 163 of 3900 (4.2 pct), carrying 34.8 pct of all cost
+
+  cond                           n   jam_rt   cost_all cost_nojam    pct_jam
+  r1_baseline                  500    0.126      59.52      41.48       39.1
+  r4tip_w0.0003                200    0.110      50.88      29.32       48.7
+  r4tip_w0.001                 400    0.022      17.55      13.20       26.5
+  r4tip_w0.003                 300    0.040      18.87      11.55       41.2
+  r4tip_w0.01                  300    0.017       6.78       3.02       56.1
+  r4tip_w0.03                  200    0.000       0.14       0.14        0.0
+  sacpid_tip_ki8_d20           200    0.000      16.01      16.01        0.0
+  sacpid_tip_w20_d150          300    0.113      71.42      51.61       35.9
+  sacpid_tip_w20_d20          1100    0.010      10.69       8.95       17.1
+  sacpid_tip_w20_d30           400    0.018      12.68       8.29       35.7
+
+=== 2. efficiency EXCLUDING jam episodes, pool train ===
+  if the ordering survives here, safety is not merely jam avoidance.
+
+  cond                      npair          cost per prog 95pct     d prog     d cost
+  r4tip_w0.0003                99      238.9 [    37.4    516.3]      0.052      12.34
+  r4tip_w0.001                100      876.5 [   474.0   2419.8]      0.032      27.92
+  r4tip_w0.003                100      153.1 [   101.1    207.5]      0.183      28.01
+  r4tip_w0.01                 100      225.0 [   184.7    270.2]      0.168      37.85
+  r4tip_w0.03                 100       66.9 [    56.1     78.7]      0.611      40.88
+  sacpid_tip_ki8_d20          100       49.0 [    27.8     69.3]      0.510      25.01
+  sacpid_tip_w20_d150         100     -354.5 [  -894.8    -53.5]      0.042     -14.90
+  sacpid_tip_w20_d20          100       78.2 [    62.8     94.7]      0.410      32.09
+  sacpid_tip_w20_d30          100       72.5 [    56.3     89.4]      0.450      32.60
+
+=== 3. one point per SEED, immune to seed composition, pool train ===
+               cond  seed   n  prog    cost     ins  suc  jam
+        r1_baseline     0 100 0.819  31.286 226.628 0.02 0.05
+        r1_baseline     1 100 0.917 126.266 289.095 0.13 0.39
+        r1_baseline     2 100 0.742  52.943 210.079 0.13 0.08
+        r1_baseline     3 100 0.735  55.119 198.872 0.12 0.03
+        r1_baseline     4 100 0.781  31.976 218.455 0.12 0.08
+      r4tip_w0.0003     0 100 0.805  73.701 242.072 0.06 0.19
+      r4tip_w0.0003     1 100 0.686  28.055 186.422 0.07 0.03
+       r4tip_w0.001     0 100 0.747   9.687 203.687 0.06 0.02
+       r4tip_w0.001     1 100 0.767  40.298 210.851 0.11 0.05
+       r4tip_w0.001     3 100 0.814  13.428 219.174 0.02 0.00
+       r4tip_w0.001     4 100 0.661   6.788 184.657 0.01 0.02
+       r4tip_w0.003     0 100 0.643  15.513 171.822 0.04 0.02
+       r4tip_w0.003     1 100 0.729  28.722 204.591 0.10 0.07
+       r4tip_w0.003     2 100 0.432  12.368 117.491 0.09 0.03
+        r4tip_w0.01     0 100 0.696  11.981 188.782 0.02 0.03
+        r4tip_w0.01     1 100 0.551   2.842 146.480 0.01 0.00
+        r4tip_w0.01     2 100 0.586   5.515 158.594 0.00 0.02
+        r4tip_w0.03     0 100 0.325   0.281  89.477 0.00 0.00
+        r4tip_w0.03     1 100 0.003   0.000   0.612 0.00 0.00
+ sacpid_tip_ki8_d20     1 100 0.146  28.072  37.253 0.00 0.00
+ sacpid_tip_ki8_d20     2 100 0.383   3.947  97.524 0.00 0.00
+sacpid_tip_w20_d150     2 100 0.701  89.552 205.736 0.11 0.14
+sacpid_tip_w20_d150     3 100 0.753  83.727 210.706 0.13 0.08
+sacpid_tip_w20_d150     4 100 0.809  40.968 232.312 0.11 0.12
+ sacpid_tip_w20_d20     0 100 0.679   9.538 187.760 0.03 0.01
+ sacpid_tip_w20_d20     1 100 0.271   7.221  63.226 0.03 0.00
+ sacpid_tip_w20_d20     2 100 0.442   1.586 115.835 0.03 0.00
+ sacpid_tip_w20_d20     3 100 0.188  14.493  47.776 0.00 0.00
+ sacpid_tip_w20_d20     4 100 0.314  18.513  88.959 0.03 0.05
+ sacpid_tip_w20_d20     5 100 0.362  13.791  96.968 0.00 0.00
+ sacpid_tip_w20_d20     6 100 0.269   3.359  68.683 0.00 0.00
+ sacpid_tip_w20_d20     7 100 0.153   6.220  42.133 0.00 0.00
+ sacpid_tip_w20_d20     8 100 0.412  15.798 105.661 0.04 0.00
+ sacpid_tip_w20_d20     9 100 0.153  13.179  37.470 0.00 0.00
+ sacpid_tip_w20_d20    10 100 0.834  13.858 227.681 0.01 0.05
+ sacpid_tip_w20_d30     0 100 0.423   8.525 114.013 0.02 0.01
+ sacpid_tip_w20_d30     1 100 0.084   1.180  22.232 0.00 0.00
+ sacpid_tip_w20_d30     2 100 0.561  28.819 153.711 0.03 0.03
+ sacpid_tip_w20_d30     3 100 0.266  12.189  70.357 0.05 0.03
+
+  seed level dominance: an R4 seed dominates a SACPID seed if it has
+  strictly more progress AND strictly less cost.
+
+  sacpid seed                      prog       cost dominated by
+  ki8_d20 s1                      0.146      28.07 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.383       3.95 w0.01 s1
+  w20_d150 s2                     0.701      89.55 w0.0003 s0, w0.001 s0, w0.001 s1, w0.001 s3, w0.003 s1
+  w20_d150 s3                     0.753      83.73 w0.0003 s0, w0.001 s1, w0.001 s3
+  w20_d150 s4                     0.809      40.97 w0.001 s3
+  w20_d20 s0                      0.679       9.54 NONE
+  w20_d20 s1                      0.271       7.22 w0.001 s4, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s2                      0.442       1.59 NONE
+  w20_d20 s3                      0.188      14.49 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.314      18.51 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s5                      0.362      13.79 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.269       3.36 w0.01 s1, w0.03 s0
+  w20_d20 s7                      0.153       6.22 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.412      15.80 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.153      13.18 w0.001 s0, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.834      13.86 NONE
+  w20_d30 s0                      0.423       8.52 w0.001 s4, w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.084       1.18 w0.03 s0
+  w20_d30 s2                      0.561      28.82 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s2
+  w20_d30 s3                      0.266      12.19 w0.001 s0, w0.001 s4, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+
+  and the reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s2
+
+=== 4. is d30 dominated by d20 a seed artefact, pool train ===
+  sacpid_tip_w20_d20       seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    prog [0.679 0.271 0.442 0.188 0.314 0.362 0.269 0.153 0.412 0.153 0.834]
+    cost [ 9.54  7.22  1.59 14.49 18.51 13.79  3.36  6.22 15.8  13.18 13.86]
+  sacpid_tip_w20_d30       seeds [0, 1, 2, 3]
+    prog [0.423 0.084 0.561 0.266]
+    cost [ 8.52  1.18 28.82 12.19]
+
+  pooled: d20 prog 0.371 cost 10.69, d30 prog 0.334 cost 12.68
+  d30 dropping its worst seed: prog 0.417 cost 16.51 (n=3)
+  best seed each: d20 prog 0.834 cost 13.86, d30 prog 0.561 cost 28.82
+
+=== 5. is d predictive of realised cost, per seed, pool train ===
+  the interpretability claim in its testable form. no fitting is used:
+  the prediction for SACPID is simply cost = d.
+
+  seed                                d   realised      ratio    abs err
+  w20_d150 s2                       150      89.55       0.60       0.40
+  w20_d150 s3                       150      83.73       0.56       0.44
+  w20_d150 s4                       150      40.97       0.27       0.73
+  w20_d20 s0                         20       9.54       0.48       0.52
+  w20_d20 s1                         20       7.22       0.36       0.64
+  w20_d20 s2                         20       1.59       0.08       0.92
+  w20_d20 s3                         20      14.49       0.72       0.28
+  w20_d20 s4                         20      18.51       0.93       0.07
+  w20_d20 s5                         20      13.79       0.69       0.31
+  w20_d20 s6                         20       3.36       0.17       0.83
+  w20_d20 s7                         20       6.22       0.31       0.69
+  w20_d20 s8                         20      15.80       0.79       0.21
+  w20_d20 s9                         20      13.18       0.66       0.34
+  w20_d20 s10                        20      13.86       0.69       0.31
+  w20_d30 s0                         30       8.52       0.28       0.72
+  w20_d30 s1                         30       1.18       0.04       0.96
+  w20_d30 s2                         30      28.82       0.96       0.04
+  w20_d30 s3                         30      12.19       0.41       0.59
+
+  mean relative error of the identity prediction: 0.50
+  fraction of seeds under budget: 1.00
+
+  the same question for R4, where the knob has no physical units.
+  leave one weight out, fit log cost against log w on the rest,
+  predict the held out weight. this is what tuning would have to do.
+
+  w                realised    predicted    rel err
+  0.0003              50.88       216.49       3.25
+  0.0010              17.55        27.07       0.54
+  0.0030              18.87         5.56       0.71
+  0.0100               6.78         1.07       0.84
+  0.0300               0.14         4.20      28.93
+
+  mean relative error of the fitted prediction: 6.86
+
+  if the identity error is comparable to or lower than the fitted error,
+  the budget is a usable knob and the fixed weight is not.
+
+=== 6. what a target cost would take under each method, pool train ===
+  for each target, the SACPID answer is d = target, one run.
+  the R4 answer is whichever weight lands nearest, found by sweeping.
+
+    target                   nearest R4   its cost   its prog
+         5                  r4tip_w0.01       6.78      0.611
+        10                  r4tip_w0.01       6.78      0.611
+        20                 r4tip_w0.003      18.87      0.601
+        30                 r4tip_w0.003      18.87      0.601
+        50                r4tip_w0.0003      50.88      0.745
+
+  SACPID arms actually run, for comparison:
+  sacpid_tip_w20_d150          d   150  realised    71.42  prog  0.754
+  sacpid_tip_w20_d20           d    20  realised    10.69  prog  0.371
+  sacpid_tip_w20_d30           d    30  realised    12.68  prog  0.334
+
+############ pool test ############
+=== 1. how much of the cost is the jam, pool test ===
+  jam episodes 283 of 3900 (7.3 pct), carrying 41.5 pct of all cost
+
+  cond                           n   jam_rt   cost_all cost_nojam    pct_jam
+  r1_baseline                  500    0.184      82.09      58.22       42.1
+  r4tip_w0.0003                200    0.185      69.47      24.85       70.8
+  r4tip_w0.001                 400    0.102      40.45      28.59       36.6
+  r4tip_w0.003                 300    0.093      32.28      13.03       63.4
+  r4tip_w0.01                  300    0.023       7.07       4.02       44.4
+  r4tip_w0.03                  200    0.000       0.21       0.21        0.0
+  sacpid_tip_ki8_d20           200    0.010      13.07      10.98       16.8
+  sacpid_tip_w20_d150          300    0.137      68.64      47.54       40.2
+  sacpid_tip_w20_d20          1100    0.027      16.55      12.00       29.5
+  sacpid_tip_w20_d30           400    0.013      25.44      21.81       15.4
+
+=== 2. efficiency EXCLUDING jam episodes, pool test ===
+  if the ordering survives here, safety is not merely jam avoidance.
+
+  cond                      npair          cost per prog 95pct     d prog     d cost
+  r4tip_w0.0003                96      430.9 [   219.6    754.7]      0.087      37.28
+  r4tip_w0.001                 99      469.7 [   219.2    773.3]      0.067      31.54
+  r4tip_w0.003                 99      235.4 [   170.9    306.7]      0.211      49.70
+  r4tip_w0.01                  99      299.6 [   232.0    374.1]      0.194      58.09
+  r4tip_w0.03                  99       94.2 [    70.6    120.1]      0.657      61.92
+  sacpid_tip_ki8_d20           99       94.2 [    62.3    126.1]      0.547      51.57
+  sacpid_tip_w20_d150          97      204.4 [  -147.0    536.2]      0.053      10.90
+  sacpid_tip_w20_d20           99      114.0 [    82.2    146.7]      0.438      49.98
+  sacpid_tip_w20_d30           99       89.0 [    51.8    128.0]      0.452      40.24
+
+=== 3. one point per SEED, immune to seed composition, pool test ===
+               cond  seed   n  prog    cost     ins  suc  jam
+        r1_baseline     0 100 0.816  34.726 227.258 0.03 0.12
+        r1_baseline     1 100 0.937 134.141 296.837 0.21 0.41
+        r1_baseline     2 100 0.777  80.790 219.084 0.14 0.11
+        r1_baseline     3 100 0.751  90.500 202.701 0.14 0.05
+        r1_baseline     4 100 0.879  70.304 258.655 0.18 0.23
+      r4tip_w0.0003     0 100 0.796 103.973 246.200 0.09 0.28
+      r4tip_w0.0003     1 100 0.713  34.962 196.322 0.13 0.09
+       r4tip_w0.001     0 100 0.776  27.247 217.998 0.07 0.13
+       r4tip_w0.001     1 100 0.726  46.109 197.024 0.18 0.08
+       r4tip_w0.001     3 100 0.857  53.835 234.982 0.00 0.08
+       r4tip_w0.001     4 100 0.662  34.604 194.916 0.00 0.12
+       r4tip_w0.003     0 100 0.691  23.868 188.260 0.04 0.09
+       r4tip_w0.003     1 100 0.751  46.820 211.031 0.17 0.12
+       r4tip_w0.003     2 100 0.418  26.158 114.930 0.14 0.07
+        r4tip_w0.01     0 100 0.657  16.766 176.519 0.04 0.07
+        r4tip_w0.01     1 100 0.558   3.460 144.106 0.02 0.00
+        r4tip_w0.01     2 100 0.595   0.977 153.814 0.04 0.00
+        r4tip_w0.03     0 100 0.267   0.400  72.777 0.00 0.00
+        r4tip_w0.03     1 100 0.007   0.022   2.175 0.00 0.00
+ sacpid_tip_ki8_d20     1 100 0.139  17.635  33.372 0.00 0.00
+ sacpid_tip_ki8_d20     2 100 0.378   8.499  96.599 0.00 0.02
+sacpid_tip_w20_d150     2 100 0.735  61.095 212.684 0.15 0.12
+sacpid_tip_w20_d150     3 100 0.746  89.293 210.811 0.21 0.17
+sacpid_tip_w20_d150     4 100 0.836  55.522 235.982 0.21 0.12
+ sacpid_tip_w20_d20     0 100 0.656  13.126 180.117 0.03 0.05
+ sacpid_tip_w20_d20     1 100 0.269  18.651  60.504 0.00 0.01
+ sacpid_tip_w20_d20     2 100 0.378   9.113  97.806 0.04 0.04
+ sacpid_tip_w20_d20     3 100 0.204  27.875  49.079 0.01 0.01
+ sacpid_tip_w20_d20     4 100 0.349  33.133  94.940 0.08 0.05
+ sacpid_tip_w20_d20     5 100 0.329   8.880  91.054 0.00 0.00
+ sacpid_tip_w20_d20     6 100 0.286   8.993  71.848 0.00 0.00
+ sacpid_tip_w20_d20     7 100 0.145  10.896  40.048 0.00 0.00
+ sacpid_tip_w20_d20     8 100 0.429  18.014 111.290 0.09 0.03
+ sacpid_tip_w20_d20     9 100 0.164  13.059  39.378 0.00 0.00
+ sacpid_tip_w20_d20    10 100 0.864  20.330 240.626 0.01 0.11
+ sacpid_tip_w20_d30     0 100 0.490   4.879 130.769 0.00 0.01
+ sacpid_tip_w20_d30     1 100 0.089   3.437  22.727 0.00 0.00
+ sacpid_tip_w20_d30     2 100 0.537  82.335 143.882 0.03 0.03
+ sacpid_tip_w20_d30     3 100 0.259  11.125  62.848 0.09 0.01
+
+  seed level dominance: an R4 seed dominates a SACPID seed if it has
+  strictly more progress AND strictly less cost.
+
+  sacpid seed                      prog       cost dominated by
+  ki8_d20 s1                      0.139      17.63 w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.378       8.50 w0.01 s1, w0.01 s2
+  w20_d150 s2                     0.735      61.10 w0.001 s0, w0.001 s3, w0.003 s1
+  w20_d150 s3                     0.746      89.29 w0.001 s0, w0.001 s3, w0.003 s1
+  w20_d150 s4                     0.836      55.52 w0.001 s3
+  w20_d20 s0                      0.656      13.13 NONE
+  w20_d20 s1                      0.269      18.65 w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s2                      0.378       9.11 w0.01 s1, w0.01 s2
+  w20_d20 s3                      0.204      27.87 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.349      33.13 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s5                      0.329       8.88 w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.286       8.99 w0.01 s1, w0.01 s2
+  w20_d20 s7                      0.145      10.90 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.429      18.01 w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.164      13.06 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.864      20.33 NONE
+  w20_d30 s0                      0.490       4.88 w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.089       3.44 w0.01 s2, w0.03 s0
+  w20_d30 s2                      0.537      82.34 w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d30 s3                      0.259      11.13 w0.01 s1, w0.01 s2, w0.03 s0
+
+  and the reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s0 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s3 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s4 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s8, sacpid_tip_w20_d20 s10, sacpid_tip_w20_d30 s0
+
+=== 4. is d30 dominated by d20 a seed artefact, pool test ===
+  sacpid_tip_w20_d20       seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    prog [0.656 0.269 0.378 0.204 0.349 0.329 0.286 0.145 0.429 0.164 0.864]
+    cost [13.13 18.65  9.11 27.87 33.13  8.88  8.99 10.9  18.01 13.06 20.33]
+  sacpid_tip_w20_d30       seeds [0, 1, 2, 3]
+    prog [0.49  0.089 0.537 0.259]
+    cost [ 4.88  3.44 82.34 11.13]
+
+  pooled: d20 prog 0.370 cost 16.55, d30 prog 0.344 cost 25.44
+  d30 dropping its worst seed: prog 0.429 cost 32.78 (n=3)
+  best seed each: d20 prog 0.864 cost 20.33, d30 prog 0.537 cost 82.34
+
+=== 5. is d predictive of realised cost, per seed, pool test ===
+  the interpretability claim in its testable form. no fitting is used:
+  the prediction for SACPID is simply cost = d.
+
+  seed                                d   realised      ratio    abs err
+  w20_d150 s2                       150      61.10       0.41       0.59
+  w20_d150 s3                       150      89.29       0.60       0.40
+  w20_d150 s4                       150      55.52       0.37       0.63
+  w20_d20 s0                         20      13.13       0.66       0.34
+  w20_d20 s1                         20      18.65       0.93       0.07
+  w20_d20 s2                         20       9.11       0.46       0.54
+  w20_d20 s3                         20      27.87       1.39       0.39
+  w20_d20 s4                         20      33.13       1.66       0.66
+  w20_d20 s5                         20       8.88       0.44       0.56
+  w20_d20 s6                         20       8.99       0.45       0.55
+  w20_d20 s7                         20      10.90       0.54       0.46
+  w20_d20 s8                         20      18.01       0.90       0.10
+  w20_d20 s9                         20      13.06       0.65       0.35
+  w20_d20 s10                        20      20.33       1.02       0.02
+  w20_d30 s0                         30       4.88       0.16       0.84
+  w20_d30 s1                         30       3.44       0.11       0.89
+  w20_d30 s2                         30      82.34       2.74       1.74
+  w20_d30 s3                         30      11.13       0.37       0.63
+
+  mean relative error of the identity prediction: 0.54
+  fraction of seeds under budget: 0.78
+
+  the same question for R4, where the knob has no physical units.
+  leave one weight out, fit log cost against log w on the rest,
+  predict the held out weight. this is what tuning would have to do.
+
+  w                realised    predicted    rel err
+  0.0003              69.47       538.73       6.76
+  0.0010              40.45        37.99       0.06
+  0.0030              32.28         8.30       0.74
+  0.0100               7.07         1.78       0.75
+  0.0300               0.21         4.94      22.38
+
+  mean relative error of the fitted prediction: 6.14
+
+  if the identity error is comparable to or lower than the fitted error,
+  the budget is a usable knob and the fixed weight is not.
+
+=== 6. what a target cost would take under each method, pool test ===
+  for each target, the SACPID answer is d = target, one run.
+  the R4 answer is whichever weight lands nearest, found by sweeping.
+
+    target                   nearest R4   its cost   its prog
+         5                  r4tip_w0.01       7.07      0.603
+        10                  r4tip_w0.01       7.07      0.603
+        20                 r4tip_w0.003      32.28      0.620
+        30                 r4tip_w0.003      32.28      0.620
+        50                 r4tip_w0.001      40.45      0.755
+
+  SACPID arms actually run, for comparison:
+  sacpid_tip_w20_d150          d   150  realised    68.64  prog  0.772
+  sacpid_tip_w20_d20           d    20  realised    16.55  prog  0.370
+  sacpid_tip_w20_d30           d    30  realised    25.44  prog  0.344
+

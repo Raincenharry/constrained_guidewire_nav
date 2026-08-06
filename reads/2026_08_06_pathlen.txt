@@ -1,0 +1,178 @@
+############ pool train ############
+=== A. what kind of quantity is path_length_at_reset, pool train ===
+  overall: min 188.63  median 274.86  max 342.68  distinct values 100
+  within anatomy std across r1_baseline seeds: median 0.0000, max 0.0000
+  if that is near zero it is a property of the anatomy, so a path to target.
+  if it is large it is a property of the episode, so wire fed, and section
+  C and D below do not mean what they are labelled as meaning.
+
+  mean by condition, a second check on the same question:
+cond
+r1_baseline            271.36
+r4_w0.0003             271.36
+r4tip_w0.0003          271.36
+r4tip_w0.001           271.36
+r4tip_w0.003           271.36
+r4tip_w0.01            271.36
+r4tip_w0.03            271.36
+sacpid_tip_ki8_d20     271.36
+sacpid_tip_w20_d150    271.36
+sacpid_tip_w20_d20     271.36
+sacpid_tip_w20_d30     271.36
+  if conditions differ a lot it tracks the policy, not the anatomy.
+
+=== B. path length by arch_type, one row per anatomy, pool train ===
+             count   mean   std    min    25%    50%    75%    90%    max
+arch_type                                                                
+ArchType.I    28.0  274.3  37.4  199.9  254.1  273.9  302.2  316.0  342.7
+ArchType.II   25.0  305.3  24.6  261.6  288.4  304.9  331.7  335.5  339.5
+ArchType.IV   22.0  257.9  32.5  188.6  238.4  269.8  282.2  286.0  307.0
+ArchType.V    25.0  246.0  35.9  194.0  218.0  245.1  270.9  294.4  316.9
+
+  fraction of anatomies whose path exceeds the 382.5 mm clamp:
+arch_type
+ArchType.I     0.0
+ArchType.II    0.0
+ArchType.IV    0.0
+ArchType.V     0.0
+
+=== C. fraction of the path the device covers, r1_baseline, pool train ===
+             count   mean    std    min    25%    50%    75%    90%    max
+arch_type                                                                 
+ArchType.I   140.0  0.878  0.228  0.336  0.739  0.845  0.952  1.243  1.648
+ArchType.II  125.0  0.768  0.206  0.288  0.673  0.752  0.819  1.067  1.407
+ArchType.IV  110.0  0.803  0.302  0.213  0.686  0.814  0.912  1.125  1.624
+ArchType.V   125.0  0.967  0.343  0.000  0.800  0.890  1.013  1.569  1.850
+
+  split by whether the anatomy is ever solved by any condition:
+                  size   mean  median    max
+arch_type   best                            
+ArchType.I  0      110  0.850   0.803  1.514
+            1       30  0.980   0.947  1.648
+ArchType.II 0      125  0.768   0.752  1.407
+ArchType.IV 0       75  0.760   0.758  1.577
+            1       35  0.894   0.868  1.624
+ArchType.V  0       90  0.936   0.840  1.785
+            1       35  1.045   0.951  1.850
+
+  split by outcome of the individual episode:
+                     size   mean  median
+arch_type   success                     
+ArchType.I  0         122  0.867   0.813
+            1          18  0.954   0.947
+ArchType.II 0         125  0.768   0.752
+ArchType.IV 0          94  0.780   0.770
+            1          16  0.938   0.913
+ArchType.V  0         107  0.964   0.862
+            1          18  0.981   0.964
+
+=== D. does path length predict solvability, pool train ===
+  solved by something    n= 20  path mean   217.0  median   216.0  over clamp 0.000  ins median  154.7
+  never solved           n= 80  path mean   284.9  median   283.8  over clamp 0.000  ins median  145.8
+
+  by arch_type:
+    ArchType.I       6 of  28 solved, path median   273.9, over clamp 0.000
+    ArchType.II      0 of  25 solved, path median   304.9, over clamp 0.000
+    ArchType.IV      7 of  22 solved, path median   269.8, over clamp 0.000
+    ArchType.V       7 of  25 solved, path median   245.1, over clamp 0.000
+
+  Spearman correlation, anatomy path length against solved by anything:
+    -0.650
+
+=== E. success restricted to the solvable subset, pool train ===
+  20 solvable anatomies, 840 episodes
+cond                      succ_solv   succ_all   ins_solv   tip_cost
+r1_baseline                   0.520      0.104      211.2      41.77
+r4_w0.0003                    0.333      0.067      168.8        nan
+r4tip_w0.0003                 0.325      0.065      194.2      41.25
+r4tip_w0.001                  0.250      0.050      183.3      23.59
+r4tip_w0.003                  0.383      0.077      189.5      40.85
+r4tip_w0.01                   0.050      0.010      179.2      12.57
+r4tip_w0.03                   0.000      0.000       37.6       0.25
+sacpid_tip_ki8_d20            0.000      0.000       90.2      30.48
+sacpid_tip_w20_d150           0.583      0.117      238.4      44.15
+sacpid_tip_w20_d20            0.077      0.015      123.0      23.20
+sacpid_tip_w20_d30            0.125      0.025      123.1      17.19
+
+############ pool test ############
+=== A. what kind of quantity is path_length_at_reset, pool test ===
+  overall: min 176.06  median 266.34  max 350.37  distinct values 100
+  within anatomy std across r1_baseline seeds: median 0.0000, max 0.0000
+  if that is near zero it is a property of the anatomy, so a path to target.
+  if it is large it is a property of the episode, so wire fed, and section
+  C and D below do not mean what they are labelled as meaning.
+
+  mean by condition, a second check on the same question:
+cond
+r1_baseline            266.94
+r4_w0.0003             266.94
+r4tip_w0.0003          266.94
+r4tip_w0.001           266.94
+r4tip_w0.003           266.94
+r4tip_w0.01            266.94
+r4tip_w0.03            266.94
+sacpid_tip_ki8_d20     266.94
+sacpid_tip_w20_d150    266.94
+sacpid_tip_w20_d20     266.94
+sacpid_tip_w20_d30     266.94
+  if conditions differ a lot it tracks the policy, not the anatomy.
+
+=== B. path length by arch_type, one row per anatomy, pool test ===
+              count   mean   std    min    25%    50%    75%    90%    max
+arch_type                                                                 
+ArchType.VI    53.0  282.8  42.2  199.5  250.7  285.7  313.4  334.3  350.4
+ArchType.VII   47.0  249.1  37.6  176.1  224.7  253.2  274.3  305.8  314.5
+
+  fraction of anatomies whose path exceeds the 382.5 mm clamp:
+arch_type
+ArchType.VI     0.0
+ArchType.VII    0.0
+
+=== C. fraction of the path the device covers, r1_baseline, pool test ===
+              count   mean    std    min    25%    50%    75%    90%    max
+arch_type                                                                  
+ArchType.VI   265.0  0.934  0.316  0.166  0.700  0.876  1.152  1.392  1.735
+ArchType.VII  235.0  0.893  0.275  0.198  0.747  0.870  1.008  1.171  1.730
+
+  split by whether the anatomy is ever solved by any condition:
+                   size   mean  median    max
+arch_type    best                            
+ArchType.VI  0      220  0.908   0.807  1.735
+             1       45  1.058   0.969  1.595
+ArchType.VII 0      140  0.813   0.789  1.730
+             1       95  1.011   0.990  1.705
+
+  split by outcome of the individual episode:
+                      size   mean  median
+arch_type    success                     
+ArchType.VI  0         239  0.931   0.828
+             1          26  0.960   0.963
+ArchType.VII 0         191  0.866   0.835
+             1          44  1.011   1.009
+
+=== D. does path length predict solvability, pool test ===
+  solved by something    n= 28  path mean   218.8  median   219.4  over clamp 0.000  ins median  157.8
+  never solved           n= 72  path mean   285.6  median   284.7  over clamp 0.000  ins median  143.9
+
+  by arch_type:
+    ArchType.VI      9 of  53 solved, path median   285.7, over clamp 0.000
+    ArchType.VII    19 of  47 solved, path median   253.2, over clamp 0.000
+
+  Spearman correlation, anatomy path length against solved by anything:
+    -0.693
+
+=== E. success restricted to the solvable subset, pool test ===
+  28 solvable anatomies, 1176 episodes
+cond                      succ_solv   succ_all   ins_solv   tip_cost
+r1_baseline                   0.500      0.140      226.0      34.99
+r4_w0.0003                    0.357      0.100      187.2        nan
+r4tip_w0.0003                 0.393      0.110      214.6      48.04
+r4tip_w0.001                  0.223      0.062      203.8      33.54
+r4tip_w0.003                  0.417      0.117      208.8      31.18
+r4tip_w0.01                   0.119      0.033      177.8      14.17
+r4tip_w0.03                   0.000      0.000       23.1       0.27
+sacpid_tip_ki8_d20            0.000      0.000      101.3      20.02
+sacpid_tip_w20_d150           0.679      0.190      230.4      31.75
+sacpid_tip_w20_d20            0.084      0.024      117.0      19.07
+sacpid_tip_w20_d30            0.107      0.030       98.1      21.12
+
