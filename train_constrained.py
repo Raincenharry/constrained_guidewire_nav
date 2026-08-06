@@ -96,6 +96,23 @@ def main():
     p.add_argument("--pid_kd", type=float, default=None,
                    help="derivative gain. Unset leaves the OmniSafe "
                         "default of 1e-7.")
+    p.add_argument("--pid_gate_per_epoch", action="store_true",
+                   help="Call pid_update once per epoch instead of once per "
+                        "gradient step. sac_pid.py calls it from _update, "
+                        "which the off policy loop runs once per gradient "
+                        "step, so at steps_per_epoch 6000 the controller "
+                        "fires about 6000 times per epoch. Off by default, "
+                        "so every run before this flag existed reproduces "
+                        "byte identically. Note the gate fires on the FIRST "
+                        "gradient step of each epoch, so Jc is the rolling "
+                        "window as it stands at the start of the epoch.")
+    p.add_argument("--pid_log_calls", action="store_true",
+                   help="Print one PIDCALL line per actual pid_update call, "
+                        "carrying the Jc passed in, an independently read "
+                        "mean of the logger window, the window length, d, "
+                        "and lambda after the call. Read by "
+                        "check_pid_gate.py. Leave off for production runs "
+                        "without the gate, it is one line per gradient step.")
     args = p.parse_args()
 
     if args.steps % args.steps_per_epoch != 0:
@@ -224,7 +241,7 @@ def main():
     alg = agent.agent
     lag = alg._lagrange
     _orig_pid_update = lag.pid_update
-    _state = {"epoch": -1, "calls": 0, "prev": 0}
+    _state = {"epoch": -1, "calls": 0, "prev": 0, "pid_calls": 0}
     w = args.warmup_epochs
 
     if args.anneal_from is not None:
@@ -247,7 +264,8 @@ def main():
         e = alg._epoch
         d = _d_for_epoch(e)
         lag._cost_limit = d
-        if e != _state["epoch"]:
+        new_epoch = (e != _state["epoch"])
+        if new_epoch:
             _state["prev"] = _state["calls"]
             _state["calls"] = 0
             _state["epoch"] = e
@@ -263,7 +281,26 @@ def main():
                          _state["prev"]),
                       flush=True)
         _state["calls"] += 1
-        return _orig_pid_update(ep_cost_avg)
+
+        # The gate. _state["calls"] keeps counting every wrapper invocation,
+        # so updates_prev_epoch on the LAG line still reports the gradient
+        # step rate and stays comparable with every earlier log. What the
+        # gate changes is whether the controller itself is called.
+        if args.pid_gate_per_epoch and not new_epoch:
+            return None
+
+        _state["pid_calls"] += 1
+        out = _orig_pid_update(ep_cost_avg)
+
+        if args.pid_log_calls:
+            _win = list(alg._logger._data["Metrics/EpCost"])
+            _wmean = sum(_win) / len(_win) if _win else float("nan")
+            print("PIDCALL epoch=%d call=%d jc=%.17g win=%.17g n=%d "
+                  "d=%.17g lam=%.17g"
+                  % (e, _state["pid_calls"], ep_cost_avg, _wmean, len(_win),
+                     d, lag.lagrangian_multiplier),
+                  flush=True)
+        return out
 
     lag.pid_update = _monitored_pid_update
 
@@ -274,6 +311,12 @@ def main():
                  args.cost_limit, args.anneal_end_epoch))
     else:
         print("ANNEALING OFF: d fixed at %g" % args.cost_limit)
+
+    if args.pid_gate_per_epoch:
+        print("PID GATE ON: pid_update called once per epoch")
+    else:
+        print("PID GATE OFF: pid_update called once per gradient step")
+    print("PID CALL LOGGING: %s" % ("on" if args.pid_log_calls else "off"))
 
     agent.learn()
     print("done: %s" % args.tag)
