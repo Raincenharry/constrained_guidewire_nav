@@ -1,0 +1,123 @@
+# Report tables, generated 2026-08-21
+
+Source: evals/ episode CSVs, cost column shadow_tip, eleven seed basis.
+Script tables_21aug.py. Bootstrap 5000 resamples, default_rng(0).
+Excluded by name: _ep30, run_epoch-50, cmp_, canary, bothsignals, probe.
+r1_s* excluded as duplicate of r1_baseline_s*; r4_w0.0003_s* excluded as
+the device signal condition, distinct from r4tip_w0.0003_s*.
+
+## Table 1. Conditions, seed counts and pooled results, both pools
+
+Cost is accumulated hinged tip force in newton steps. Progress is a path
+length fraction. prog excludes jam episodes; prog_z scores them zero.
+Anatomy level intervals resample episodes; seed level intervals resample
+seed means. Conditions with fewer than three seeds print no interval.
+
+| Condition | Seeds | Pool | prog_nojam | prog_z | prog_z anatomy 95% | prog_z seed 95% | Cost (N steps) | Jam rate |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| r1_baseline | 5 | train | 0.770 | 0.673 | [0.643, 0.703] | [0.597, 0.735] | 59.52 | 0.126 |
+| r1_baseline | 5 | test | 0.794 | 0.648 | [0.607, 0.688] | [0.586, 0.692] | 82.09 | 0.184 |
+| r4tip w=0.0003 | 2 | train | 0.714 | 0.635 | [0.597, 0.672] | no interval | 50.88 | 0.110 |
+| r4tip w=0.0003 | 2 | test | 0.699 | 0.569 | [0.526, 0.615] | no interval | 69.47 | 0.185 |
+| r4tip w=0.001 | 4 | train | 0.741 | 0.725 | [0.702, 0.747] | [0.663, 0.790] | 17.55 | 0.022 |
+| r4tip w=0.001 | 4 | test | 0.727 | 0.653 | [0.619, 0.685] | [0.568, 0.744] | 40.45 | 0.102 |
+| r4tip w=0.003 | 3 | train | 0.585 | 0.561 | [0.529, 0.595] | [0.402, 0.659] | 18.87 | 0.040 |
+| r4tip w=0.003 | 3 | test | 0.581 | 0.526 | [0.483, 0.568] | [0.348, 0.631] | 32.28 | 0.093 |
+| r4tip w=0.01 | 3 | train | 0.604 | 0.594 | [0.572, 0.617] | [0.551, 0.666] | 6.78 | 0.017 |
+| r4tip w=0.01 | 3 | test | 0.594 | 0.580 | [0.549, 0.609] | [0.558, 0.595] | 7.07 | 0.023 |
+| r4tip w=0.03 | 2 | train | 0.164 | 0.164 | [0.136, 0.191] | no interval | 0.14 | 0.000 |
+| r4tip w=0.03 | 2 | test | 0.137 | 0.137 | [0.111, 0.165] | no interval | 0.21 | 0.000 |
+| d = 20 | 11 | train | 0.364 | 0.361 | [0.336, 0.388] | [0.251, 0.482] | 10.69 | 0.010 |
+| d = 20 | 11 | test | 0.353 | 0.343 | [0.316, 0.370] | [0.245, 0.456] | 16.55 | 0.027 |
+| d = 30 | 4 | train | 0.322 | 0.316 | [0.291, 0.344] | [0.160, 0.472] | 12.68 | 0.018 |
+| d = 30 | 4 | test | 0.335 | 0.331 | [0.299, 0.364] | [0.169, 0.494] | 25.44 | 0.013 |
+| d = 150 | 3 | train | 0.723 | 0.641 | [0.605, 0.676] | [0.561, 0.689] | 71.42 | 0.113 |
+| d = 150 | 3 | test | 0.736 | 0.636 | [0.589, 0.681] | [0.576, 0.716] | 68.64 | 0.137 |
+| lowered gain | 2 | train | 0.264 | 0.264 | [0.233, 0.296] | no interval | 16.01 | 0.000 |
+| lowered gain | 2 | test | 0.251 | 0.249 | [0.213, 0.286] | no interval | 13.07 | 0.010 |
+
+## Table 2. Per seed realised cost and budget compliance
+
+One row per seed. Under budget is realised cost below d on that pool.
+
+| Budget d | Seed | Train cost | Under d | Test cost | Under d |
+| --- | --- | --- | --- | --- | --- |
+| d = 20 | s0 | 9.54 | yes | 13.13 | yes |
+| d = 20 | s1 | 7.22 | yes | 18.65 | yes |
+| d = 20 | s2 | 1.59 | yes | 9.11 | yes |
+| d = 20 | s3 | 14.49 | yes | 27.87 | no |
+| d = 20 | s4 | 18.51 | yes | 33.13 | no |
+| d = 20 | s5 | 13.79 | yes | 8.88 | yes |
+| d = 20 | s6 | 3.36 | yes | 8.99 | yes |
+| d = 20 | s7 | 6.22 | yes | 10.90 | yes |
+| d = 20 | s8 | 15.80 | yes | 18.01 | yes |
+| d = 20 | s9 | 13.18 | yes | 13.06 | yes |
+| d = 20 | s10 | 13.86 | yes | 20.33 | no |
+| d = 20 | pooled | 10.69 | 11 of 11 | 16.55 | 8 of 11 |
+| d = 30 | s0 | 8.52 | yes | 4.88 | yes |
+| d = 30 | s1 | 1.18 | yes | 3.44 | yes |
+| d = 30 | s2 | 28.82 | yes | 82.34 | no |
+| d = 30 | s3 | 12.19 | yes | 11.13 | yes |
+| d = 30 | pooled | 12.68 | 4 of 4 | 25.44 | 3 of 4 |
+| d = 150 | s2 | 89.55 | yes | 61.10 | yes |
+| d = 150 | s3 | 83.73 | yes | 89.29 | yes |
+| d = 150 | s4 | 40.97 | yes | 55.52 | yes |
+| d = 150 | pooled | 71.42 | 3 of 3 | 68.64 | 3 of 3 |
+
+All constrained seeds: 18 of 18 under budget on train, 14 of 18 on test.
+
+## Table 3. Identity prediction against fitted leave one out
+
+The budget predicts realised cost as cost = d, at zero calibration cost.
+The penalty has no equivalent, so its prediction is a leave one out fit of
+log cost on log weight, which costs the full five weight sweep. Interior
+weights interpolate; the two endpoints extrapolate and are reported apart.
+
+| Method | Pool | Prediction | Calibration runs | Mean relative error |
+| --- | --- | --- | --- | --- |
+| Budget | train | identity, cost = d | 0 | 0.52 |
+| Penalty, interior | train | fitted, interpolated | 5 | 0.70 |
+| Penalty, endpoints | train | fitted, extrapolated | 5 | 16.09 |
+| Penalty, all five | train | fitted, pooled | 5 | 6.86 |
+| Budget | test | identity, cost = d | 0 | 0.29 |
+| Penalty, interior | test | fitted, interpolated | 5 | 0.52 |
+| Penalty, endpoints | test | fitted, extrapolated | 5 | 14.57 |
+| Penalty, all five | test | fitted, pooled | 5 | 6.14 |
+
+Per budget identity error, train: d20 0.47, d30 0.58, d150 0.52.
+Per budget identity error, test: d20 0.17, d30 0.15, d150 0.54.
+Penalty cost by ascending weight, train: 50.88, 17.55, 18.87, 6.78, 0.14.
+  monotone decreasing: no
+Penalty cost by ascending weight, test: 69.47, 40.45, 32.28, 7.07, 0.21.
+  monotone decreasing: yes
+
+## Verification against report_draft_2026_08_19_v6.md
+
+Every number the draft states in sections 3.1 to 3.3, recomputed.
+
+d20 test per seed cost: 13.1, 18.7, 9.1, 27.9, 33.1, 8.9, 9.0, 10.9, 18.0, 13.1, 20.3
+  draft: 13.1, 18.7, 9.1, 27.9, 33.1, 8.9, 9.0, 10.9, 18.0, 13.1, 20.3
+  seeds over budget: 3, overshoot 39%, 66%, 2%
+  draft: 3 seeds over, by 39 percent, 66 percent and 2 percent
+pooled cost d = 20 train: 10.69, draft 10.69
+pooled cost d = 20 test: 16.55, draft 16.55
+pooled cost d = 30 train: 12.68, draft 12.68
+pooled cost d = 30 test: 25.44, draft 25.44
+pooled cost d = 150 train: 71.42, draft 71.42
+pooled cost d = 150 test: 68.64, draft 68.64
+d20 train max per seed cost: 18.51, draft 18.5
+d20 test prog_z: 0.343, draft 0.343
+identity error test 0.29, draft 0.29
+identity error train 0.52, draft 0.52
+penalty interior test 0.52, draft 0.52
+penalty interior train 0.70, draft 0.70
+penalty all five test 6.14, draft 6.14
+seed level identity error test 0.54 over 18 seeds, draft 0.54 over 18
+  under budget 14 of 18, draft 14 of 18
+
+Operator framing, section 3.3. Note the two methods are held to different
+targets: the budget to d, the penalty to its own training pool cost,
+because the penalty has no prescribed target. Check the sentence reads fairly.
+  penalty exceeds own train cost on 5 of 5, mean error 0.59, draft 5 of 5 at 0.59
+  budget over d on 0 of 3, at identity error 0.29, draft 0 of 3 at 0.29
+

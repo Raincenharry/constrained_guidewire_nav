@@ -1,0 +1,257 @@
+############ pool train ############
+=== seed table, pool train, check prog against the 6 aug read ===
+               cond  seed   n  prog  prog_z    cost  jam
+        r1_baseline     0 100 0.819   0.769  31.286 0.05
+        r1_baseline     1 100 0.917   0.527 126.266 0.39
+        r1_baseline     2 100 0.742   0.662  52.943 0.08
+        r1_baseline     3 100 0.735   0.705  55.119 0.03
+        r1_baseline     4 100 0.781   0.701  31.976 0.08
+      r4tip_w0.0003     0 100 0.805   0.615  73.701 0.19
+      r4tip_w0.0003     1 100 0.686   0.656  28.055 0.03
+       r4tip_w0.001     0 100 0.747   0.727   9.687 0.02
+       r4tip_w0.001     1 100 0.767   0.717  40.298 0.05
+       r4tip_w0.001     3 100 0.814   0.814  13.428 0.00
+       r4tip_w0.001     4 100 0.661   0.641   6.788 0.02
+       r4tip_w0.003     0 100 0.643   0.623  15.513 0.02
+       r4tip_w0.003     1 100 0.729   0.659  28.722 0.07
+       r4tip_w0.003     2 100 0.432   0.402  12.368 0.03
+        r4tip_w0.01     0 100 0.696   0.666  11.981 0.03
+        r4tip_w0.01     1 100 0.551   0.551   2.842 0.00
+        r4tip_w0.01     2 100 0.586   0.566   5.515 0.02
+        r4tip_w0.03     0 100 0.325   0.325   0.281 0.00
+        r4tip_w0.03     1 100 0.003   0.003   0.000 0.00
+ sacpid_tip_ki8_d20     1 100 0.146   0.146  28.072 0.00
+ sacpid_tip_ki8_d20     2 100 0.383   0.383   3.947 0.00
+sacpid_tip_w20_d150     2 100 0.701   0.561  89.552 0.14
+sacpid_tip_w20_d150     3 100 0.753   0.673  83.727 0.08
+sacpid_tip_w20_d150     4 100 0.809   0.689  40.968 0.12
+ sacpid_tip_w20_d20     0 100 0.679   0.669   9.538 0.01
+ sacpid_tip_w20_d20     1 100 0.271   0.271   7.221 0.00
+ sacpid_tip_w20_d20     2 100 0.442   0.442   1.586 0.00
+ sacpid_tip_w20_d20     3 100 0.188   0.188  14.493 0.00
+ sacpid_tip_w20_d20     4 100 0.314   0.264  18.513 0.05
+ sacpid_tip_w20_d20     5 100 0.362   0.362  13.791 0.00
+ sacpid_tip_w20_d20     6 100 0.269   0.269   3.359 0.00
+ sacpid_tip_w20_d20     7 100 0.153   0.153   6.220 0.00
+ sacpid_tip_w20_d20     8 100 0.412   0.412  15.798 0.00
+ sacpid_tip_w20_d20     9 100 0.153   0.153  13.179 0.00
+ sacpid_tip_w20_d20    10 100 0.834   0.784  13.858 0.05
+ sacpid_tip_w20_d30     0 100 0.423   0.413   8.525 0.01
+ sacpid_tip_w20_d30     1 100 0.084   0.084   1.180 0.00
+ sacpid_tip_w20_d30     2 100 0.561   0.531  28.819 0.03
+ sacpid_tip_w20_d30     3 100 0.266   0.236  12.189 0.03
+
+=== dominance on prog, pool train ===
+  an R4 seed dominates a SACPID seed if it has
+  strictly more prog AND strictly less cost.
+
+  sacpid seed                      prog       cost dominated by
+  ki8_d20 s1                      0.146      28.07 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.383       3.95 w0.01 s1
+  w20_d150 s2                     0.701      89.55 w0.0003 s0, w0.001 s0, w0.001 s1, w0.001 s3, w0.003 s1
+  w20_d150 s3                     0.753      83.73 w0.0003 s0, w0.001 s1, w0.001 s3
+  w20_d150 s4                     0.809      40.97 w0.001 s3
+  w20_d20 s0                      0.679       9.54 NONE
+  w20_d20 s1                      0.271       7.22 w0.001 s4, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s2                      0.442       1.59 NONE
+  w20_d20 s3                      0.188      14.49 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.314      18.51 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s5                      0.362      13.79 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.269       3.36 w0.01 s1, w0.03 s0
+  w20_d20 s7                      0.153       6.22 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.412      15.80 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.153      13.18 w0.001 s0, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.834      13.86 NONE
+  w20_d30 s0                      0.423       8.52 w0.001 s4, w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.084       1.18 w0.03 s0
+  w20_d30 s2                      0.561      28.82 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s2
+  w20_d30 s3                      0.266      12.19 w0.001 s0, w0.001 s4, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+
+  reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s2
+
+  COUNTS on prog, pool train
+    ki8_d20          undominated 0 of 2
+    w20_d150         undominated 0 of 3
+    w20_d20          undominated 3 of 11
+    w20_d30          undominated 0 of 4
+    r4 seeds dominated by a sacpid seed: 6 of 14, across 3 weights
+
+=== dominance on prog_z, pool train ===
+  an R4 seed dominates a SACPID seed if it has
+  strictly more prog_z AND strictly less cost.
+
+  sacpid seed                    prog_z       cost dominated by
+  ki8_d20 s1                      0.146      28.07 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.383       3.95 w0.01 s1
+  w20_d150 s2                     0.561      89.55 w0.0003 s0, w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s2
+  w20_d150 s3                     0.673      83.73 w0.001 s0, w0.001 s1, w0.001 s3
+  w20_d150 s4                     0.689      40.97 w0.001 s0, w0.001 s1, w0.001 s3
+  w20_d20 s0                      0.669       9.54 NONE
+  w20_d20 s1                      0.271       7.22 w0.001 s4, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s2                      0.442       1.59 NONE
+  w20_d20 s3                      0.188      14.49 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.264      18.51 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s5                      0.362      13.79 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.269       3.36 w0.01 s1, w0.03 s0
+  w20_d20 s7                      0.153       6.22 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.412      15.80 w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.153      13.18 w0.001 s0, w0.001 s4, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.784      13.86 w0.001 s3
+  w20_d30 s0                      0.413       8.52 w0.001 s4, w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.084       1.18 w0.03 s0
+  w20_d30 s2                      0.531      28.82 w0.0003 s1, w0.001 s0, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d30 s3                      0.236      12.19 w0.001 s0, w0.001 s4, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+
+  reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s2, sacpid_tip_w20_d30 s0
+  r4tip_w0.01 s0 dominated by sacpid_tip_w20_d20 s0
+
+  COUNTS on prog_z, pool train
+    ki8_d20          undominated 0 of 2
+    w20_d150         undominated 0 of 3
+    w20_d20          undominated 2 of 11
+    w20_d30          undominated 0 of 4
+    r4 seeds dominated by a sacpid seed: 7 of 14, across 4 weights
+
+############ pool test ############
+=== seed table, pool test, check prog against the 6 aug read ===
+               cond  seed   n  prog  prog_z    cost  jam
+        r1_baseline     0 100 0.816   0.696  34.726 0.12
+        r1_baseline     1 100 0.937   0.527 134.141 0.41
+        r1_baseline     2 100 0.777   0.667  80.790 0.11
+        r1_baseline     3 100 0.751   0.701  90.500 0.05
+        r1_baseline     4 100 0.879   0.649  70.304 0.23
+      r4tip_w0.0003     0 100 0.796   0.516 103.973 0.28
+      r4tip_w0.0003     1 100 0.713   0.623  34.962 0.09
+       r4tip_w0.001     0 100 0.776   0.646  27.247 0.13
+       r4tip_w0.001     1 100 0.726   0.646  46.109 0.08
+       r4tip_w0.001     3 100 0.857   0.777  53.835 0.08
+       r4tip_w0.001     4 100 0.662   0.542  34.604 0.12
+       r4tip_w0.003     0 100 0.691   0.601  23.868 0.09
+       r4tip_w0.003     1 100 0.751   0.631  46.820 0.12
+       r4tip_w0.003     2 100 0.418   0.348  26.158 0.07
+        r4tip_w0.01     0 100 0.657   0.587  16.766 0.07
+        r4tip_w0.01     1 100 0.558   0.558   3.460 0.00
+        r4tip_w0.01     2 100 0.595   0.595   0.977 0.00
+        r4tip_w0.03     0 100 0.267   0.267   0.400 0.00
+        r4tip_w0.03     1 100 0.007   0.007   0.022 0.00
+ sacpid_tip_ki8_d20     1 100 0.139   0.139  17.635 0.00
+ sacpid_tip_ki8_d20     2 100 0.378   0.358   8.499 0.02
+sacpid_tip_w20_d150     2 100 0.735   0.615  61.095 0.12
+sacpid_tip_w20_d150     3 100 0.746   0.576  89.293 0.17
+sacpid_tip_w20_d150     4 100 0.836   0.716  55.522 0.12
+ sacpid_tip_w20_d20     0 100 0.656   0.606  13.126 0.05
+ sacpid_tip_w20_d20     1 100 0.269   0.259  18.651 0.01
+ sacpid_tip_w20_d20     2 100 0.378   0.338   9.113 0.04
+ sacpid_tip_w20_d20     3 100 0.204   0.194  27.875 0.01
+ sacpid_tip_w20_d20     4 100 0.349   0.299  33.133 0.05
+ sacpid_tip_w20_d20     5 100 0.329   0.329   8.880 0.00
+ sacpid_tip_w20_d20     6 100 0.286   0.286   8.993 0.00
+ sacpid_tip_w20_d20     7 100 0.145   0.145  10.896 0.00
+ sacpid_tip_w20_d20     8 100 0.429   0.399  18.014 0.03
+ sacpid_tip_w20_d20     9 100 0.164   0.164  13.059 0.00
+ sacpid_tip_w20_d20    10 100 0.864   0.754  20.330 0.11
+ sacpid_tip_w20_d30     0 100 0.490   0.480   4.879 0.01
+ sacpid_tip_w20_d30     1 100 0.089   0.089   3.437 0.00
+ sacpid_tip_w20_d30     2 100 0.537   0.507  82.335 0.03
+ sacpid_tip_w20_d30     3 100 0.259   0.249  11.125 0.01
+
+=== dominance on prog, pool test ===
+  an R4 seed dominates a SACPID seed if it has
+  strictly more prog AND strictly less cost.
+
+  sacpid seed                      prog       cost dominated by
+  ki8_d20 s1                      0.139      17.63 w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.378       8.50 w0.01 s1, w0.01 s2
+  w20_d150 s2                     0.735      61.10 w0.001 s0, w0.001 s3, w0.003 s1
+  w20_d150 s3                     0.746      89.29 w0.001 s0, w0.001 s3, w0.003 s1
+  w20_d150 s4                     0.836      55.52 w0.001 s3
+  w20_d20 s0                      0.656      13.13 NONE
+  w20_d20 s1                      0.269      18.65 w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s2                      0.378       9.11 w0.01 s1, w0.01 s2
+  w20_d20 s3                      0.204      27.87 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.349      33.13 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s5                      0.329       8.88 w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.286       8.99 w0.01 s1, w0.01 s2
+  w20_d20 s7                      0.145      10.90 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.429      18.01 w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.164      13.06 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.864      20.33 NONE
+  w20_d30 s0                      0.490       4.88 w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.089       3.44 w0.01 s2, w0.03 s0
+  w20_d30 s2                      0.537      82.34 w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d30 s3                      0.259      11.13 w0.01 s1, w0.01 s2, w0.03 s0
+
+  reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s0 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s3 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s4 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s8, sacpid_tip_w20_d20 s10, sacpid_tip_w20_d30 s0
+
+  COUNTS on prog, pool test
+    ki8_d20          undominated 0 of 2
+    w20_d150         undominated 0 of 3
+    w20_d20          undominated 2 of 11
+    w20_d30          undominated 0 of 4
+    r4 seeds dominated by a sacpid seed: 9 of 14, across 3 weights
+
+=== dominance on prog_z, pool test ===
+  an R4 seed dominates a SACPID seed if it has
+  strictly more prog_z AND strictly less cost.
+
+  sacpid seed                    prog_z       cost dominated by
+  ki8_d20 s1                      0.139      17.63 w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  ki8_d20 s2                      0.358       8.50 w0.01 s1, w0.01 s2
+  w20_d150 s2                     0.615      61.10 w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.003 s1
+  w20_d150 s3                     0.576      89.29 w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s2
+  w20_d150 s4                     0.716      55.52 w0.001 s3
+  w20_d20 s0                      0.606      13.13 NONE
+  w20_d20 s1                      0.259      18.65 w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s2                      0.338       9.11 w0.01 s1, w0.01 s2
+  w20_d20 s3                      0.194      27.87 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s4                      0.299      33.13 w0.001 s0, w0.003 s0, w0.003 s2, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s5                      0.329       8.88 w0.01 s1, w0.01 s2
+  w20_d20 s6                      0.286       8.99 w0.01 s1, w0.01 s2
+  w20_d20 s7                      0.145      10.90 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s8                      0.399      18.01 w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d20 s9                      0.164      13.06 w0.01 s1, w0.01 s2, w0.03 s0
+  w20_d20 s10                     0.754      20.33 NONE
+  w20_d30 s0                      0.480       4.88 w0.01 s1, w0.01 s2
+  w20_d30 s1                      0.089       3.44 w0.01 s2, w0.03 s0
+  w20_d30 s2                      0.507      82.34 w0.0003 s1, w0.001 s0, w0.001 s1, w0.001 s3, w0.001 s4, w0.003 s0, w0.003 s1, w0.01 s0, w0.01 s1, w0.01 s2
+  w20_d30 s3                      0.249      11.13 w0.01 s1, w0.01 s2, w0.03 s0
+
+  reverse, SACPID seeds dominating R4 seeds:
+  r4tip_w0.0003 s0 dominated by sacpid_tip_w20_d150 s2, sacpid_tip_w20_d150 s3, sacpid_tip_w20_d150 s4, sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.0003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s0 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.001 s4 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s0 dominated by sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s1 dominated by sacpid_tip_w20_d20 s10
+  r4tip_w0.003 s2 dominated by sacpid_tip_ki8_d20 s2, sacpid_tip_w20_d20 s0, sacpid_tip_w20_d20 s8, sacpid_tip_w20_d20 s10, sacpid_tip_w20_d30 s0
+  r4tip_w0.01 s0 dominated by sacpid_tip_w20_d20 s0
+
+  COUNTS on prog_z, pool test
+    ki8_d20          undominated 0 of 2
+    w20_d150         undominated 0 of 3
+    w20_d20          undominated 2 of 11
+    w20_d30          undominated 0 of 4
+    r4 seeds dominated by a sacpid seed: 9 of 14, across 4 weights
+
