@@ -1,0 +1,3 @@
+[submodule "stEVE"]
+	path = stEVE
+	url = https://github.com/Raincenharry/stEVE.git
